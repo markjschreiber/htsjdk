@@ -46,7 +46,7 @@ import java.util.zip.GZIPInputStream;
  * <p>Describes the functionality for producing {@link SamReader}, and offers a
  * handful of static generators.</p>
  *
- * <p>As of version 4.0.0, this factory accepts {@link java.nio.file.Path} and {@link java.net.URI}
+ * <p>As of version 6.0.0, this factory accepts {@link java.nio.file.Path} and {@link java.net.URI}
  * inputs exclusively. All {@code java.io.File}-based methods have been removed. Any NIO-compatible
  * filesystem provider (e.g., jimfs, S3, HDFS) can be used via the standard SPI mechanism.</p>
  *

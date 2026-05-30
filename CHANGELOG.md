@@ -2,12 +2,12 @@
 
 All notable changes to HTSJDK will be documented in this file.
 
-## [4.0.0] - Unreleased
+## [6.0.0] - Unreleased
 
 ### Breaking Changes
 
 This is a major release that removes all `java.io.File`-based APIs in favor of `java.nio.file.Path`.
-See the [Migration Guide](MIGRATION_GUIDE_4.0.md) for detailed upgrade instructions.
+See the [Migration Guide](MIGRATION_GUIDE_6.0.md) for detailed upgrade instructions.
 
 #### IOUtil (`htsjdk.samtools.util.IOUtil`)
 - All `File`-based methods removed (assertFileIsReadable, openFileForReading, openFileForWriting,
@@ -58,5 +58,5 @@ See the [Migration Guide](MIGRATION_GUIDE_4.0.md) for detailed upgrade instructi
 - All internal I/O operations use `java.nio.file.Path` and `java.nio.file.Files`
 
 ### Migration
-- See [MIGRATION_GUIDE_4.0.md](MIGRATION_GUIDE_4.0.md) for complete migration instructions,
+- See [MIGRATION_GUIDE_6.0.md](MIGRATION_GUIDE_6.0.md) for complete migration instructions,
   before/after code examples, and common patterns

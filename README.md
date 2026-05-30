@@ -13,9 +13,9 @@ manipulating HTS data.
 
 > **NOTE: _HTSJDK has only partial support for the latest Variant Call Format Specification.  VCFv4.3 can be read but not written and there is no support for BCFv2.2_**
 
-### Version 4.0.0 — Breaking Changes
+### Version 6.0.0 — Breaking Changes
 
-Version 4.0.0 removes all `java.io.File`-based APIs in favor of `java.nio.file.Path`. This enables
+Version 6.0.0 removes all `java.io.File`-based APIs in favor of `java.nio.file.Path`. This enables
 transparent support for custom NIO filesystem providers (e.g., jimfs for testing, S3, HDFS, GCS)
 via Java's standard SPI mechanism.
 
@@ -37,7 +37,7 @@ SamReader reader = SamReaderFactory.makeDefault().open(Path.of("input.bam"));
 SamReader s3Reader = SamReaderFactory.makeDefault().open(URI.create("s3://bucket/input.bam"));
 ```
 
-See the **[Migration Guide](MIGRATION_GUIDE_4.0.md)** for detailed upgrade instructions, a full
+See the **[Migration Guide](MIGRATION_GUIDE_6.0.md)** for detailed upgrade instructions, a full
 list of removed methods, and before/after code examples.
 
 ### Using HTSJDK with Amazon S3
@@ -48,7 +48,7 @@ HTSJDK 4.0's Path-based API works with the [AWS Java NIO SPI for S3](https://git
 
 ```groovy
 // Gradle
-implementation 'com.github.samtools:htsjdk:4.0.0'
+implementation 'com.github.samtools:htsjdk:6.0.0'
 runtimeOnly 'software.amazon.nio.s3:aws-java-nio-spi-for-s3:2.4.0'
 ```
 
@@ -57,7 +57,7 @@ runtimeOnly 'software.amazon.nio.s3:aws-java-nio-spi-for-s3:2.4.0'
 <dependency>
     <groupId>com.github.samtools</groupId>
     <artifactId>htsjdk</artifactId>
-    <version>4.0.0</version>
+    <version>6.0.0</version>
 </dependency>
 <dependency>
     <groupId>software.amazon.nio.s3</groupId>
@@ -198,7 +198,7 @@ Broadly speaking the majority of the code is covered under the MIT license with 
 
 ### Java Minimum Version Support Policy
 
-Htsjdk 4.0.0 requires Java 17 or later.
+Htsjdk 6.0.0 requires Java 17 or later.
 
 Previous 3.x releases supported Java 8 and 11. We will provide 3.x patch releases on demand if
 critical bugs are discovered in the next 6 months.
@@ -207,8 +207,8 @@ Java SE Major Release | End of Java SE Oracle Public Updates / OpenJDK support |
 ---- | ---- |-----------------------------------| ----
 6  | Feb 2013 | Aug 2013                          | Oct 2015
 7  | Apr 2015 | Oct 2015                          | Oct 2015
-8  | Jan 2019 | Feb 2022                          | 4.0.0
-11 | Sep 2022 | Feb 2022                          | 4.0.0
+8  | Jan 2019 | Feb 2022                          | 6.0.0
+11 | Sep 2022 | Feb 2022                          | 6.0.0
 17 | TBD      | TBD                               | TBD
 
  

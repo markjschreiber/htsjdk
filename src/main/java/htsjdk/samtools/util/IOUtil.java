@@ -77,7 +77,7 @@ import java.util.zip.GZIPInputStream;
  * Miscellaneous stateless static IO-oriented methods.
  * Also used for utility methods that wrap or aggregate functionality in Java IO.
  *
- * <p>As of version 4.0.0, this class uses {@link java.nio.file.Path} exclusively.
+ * <p>As of version 6.0.0, this class uses {@link java.nio.file.Path} exclusively.
  * All {@code java.io.File}-based methods have been removed. This enables compatibility
  * with NIO filesystem providers (e.g., jimfs, S3, HDFS) via the standard SPI mechanism.</p>
  *

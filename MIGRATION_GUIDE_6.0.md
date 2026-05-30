@@ -2,7 +2,7 @@
 
 ## Overview
 
-HTSJDK 4.0.0 completes the migration from `java.io.File` to `java.nio.file.Path` across the entire
+HTSJDK 6.0.0 completes the migration from `java.io.File` to `java.nio.file.Path` across the entire
 public API. All `File`-based methods, constructors, and parameters have been removed from the main
 source tree. This is a breaking change that requires downstream projects to update their code.
 
@@ -301,7 +301,7 @@ directly.
 
 ```groovy
 // Gradle
-implementation 'com.github.samtools:htsjdk:4.0.0'
+implementation 'com.github.samtools:htsjdk:6.0.0'
 ```
 
 ```xml
@@ -309,6 +309,6 @@ implementation 'com.github.samtools:htsjdk:4.0.0'
 <dependency>
     <groupId>com.github.samtools</groupId>
     <artifactId>htsjdk</artifactId>
-    <version>4.0.0</version>
+    <version>6.0.0</version>
 </dependency>
 ```

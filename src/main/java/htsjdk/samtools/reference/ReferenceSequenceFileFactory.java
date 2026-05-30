@@ -54,7 +54,7 @@ import java.util.function.Function;
  * Factory class for creating ReferenceSequenceFile instances for reading reference
  * sequences stored in various formats.
  *
- * <p>As of version 4.0.0, this factory accepts {@link java.nio.file.Path} and {@link java.net.URI}
+ * <p>As of version 6.0.0, this factory accepts {@link java.nio.file.Path} and {@link java.net.URI}
  * exclusively. All {@code java.io.File}-based methods have been removed. Any NIO-compatible
  * filesystem provider (e.g., jimfs, S3, HDFS) can be used via the standard SPI mechanism.</p>
  *
