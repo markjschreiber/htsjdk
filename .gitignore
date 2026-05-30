@@ -22,3 +22,7 @@ src/htsjdk.iml
 
 #japi-compliance-checker
 /compat_reports/
+
+#jqwik
+.jqwik-database
+
