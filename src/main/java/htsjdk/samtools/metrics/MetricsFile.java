@@ -33,6 +33,8 @@ import htsjdk.samtools.util.StringUtil;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -126,16 +128,16 @@ public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> imple
     }
 
     /**
-     * Writes out the metrics file to the supplied file. The file is written out
+     * Writes out the metrics file to the supplied path. The file is written out
      * headers first, metrics second and histogram third.
      *
-     * @param f a File into which to write the metrics
+     * @param path a Path into which to write the metrics
      */
-    public void write(final File f) {
-        try (FileWriter w = new FileWriter(f)) {
+    public void write(final Path path) {
+        try (java.io.Writer w = Files.newBufferedWriter(path)) {
             write(w);
         } catch (IOException ioe) {
-            throw new SAMException("Could not write metrics to file: " + f.getAbsolutePath(), ioe);
+            throw new SAMException("Could not write metrics to file: " + path.toAbsolutePath(), ioe);
         }
     }
 
@@ -525,12 +527,12 @@ public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> imple
 
     /**
      * Convenience method to read all the Metric beans from a metrics file.
-     * @param file to be read.
+     * @param path to be read.
      * @return list of beans from the file.
      */
-    public static <T extends MetricBase> List<T> readBeans(final File file) {
+    public static <T extends MetricBase> List<T> readBeans(final Path path) {
         final MetricsFile<T, ?> metricsFile = new MetricsFile<>();
-        final Reader in = IOUtil.openFileForBufferedReading(file);
+        final Reader in = IOUtil.openFileForBufferedReading(path);
         metricsFile.read(in);
         CloserUtil.close(in);
         return metricsFile.getMetrics();
@@ -539,12 +541,12 @@ public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> imple
     /**
      * Method to read the header from a metrics file.
      */
-    public static List<Header> readHeaders(final File file) {
+    public static List<Header> readHeaders(final Path path) {
         try {
             final MetricsFile<MetricBase, ?> metricsFile = new MetricsFile<>();
-            metricsFile.read(new FileReader(file));
+            metricsFile.read(Files.newBufferedReader(path));
             return metricsFile.getHeaders();
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             throw new SAMException(e.getMessage(), e);
         }
     }
@@ -552,14 +554,14 @@ public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> imple
     /**
      * Compare the metrics in two files, ignoring headers and histograms.
      */
-    public static boolean areMetricsEqual(final File file1, final File file2) {
+    public static boolean areMetricsEqual(final Path path1, final Path path2) {
         try {
             final MetricsFile<MetricBase, ?> mf1 = new MetricsFile<>();
             final MetricsFile<MetricBase, ?> mf2 = new MetricsFile<>();
-            mf1.read(new FileReader(file1));
-            mf2.read(new FileReader(file2));
+            mf1.read(Files.newBufferedReader(path1));
+            mf2.read(Files.newBufferedReader(path2));
             return mf1.areMetricsEqual(mf2);
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             throw new SAMException(e.getMessage(), e);
         }
 
@@ -568,16 +570,16 @@ public class MetricsFile<BEAN extends MetricBase, HKEY extends Comparable> imple
     /**
      * Compare the metrics and histograms in two files, ignoring headers.
      */
-    public static boolean areMetricsAndHistogramsEqual(final File file1, final File file2) {
+    public static boolean areMetricsAndHistogramsEqual(final Path path1, final Path path2) {
         try {
             final MetricsFile<MetricBase, ?> mf1 = new MetricsFile<>();
             final MetricsFile<MetricBase, ?> mf2 = new MetricsFile<>();
-            mf1.read(new FileReader(file1));
-            mf2.read(new FileReader(file2));
+            mf1.read(Files.newBufferedReader(path1));
+            mf2.read(Files.newBufferedReader(path2));
 
             return mf1.areMetricsEqual(mf2) && mf1.areHistogramsEqual(mf2);
 
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             throw new SAMException(e.getMessage(), e);
         }
     }

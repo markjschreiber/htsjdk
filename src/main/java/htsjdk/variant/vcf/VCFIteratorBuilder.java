@@ -24,7 +24,6 @@
 package htsjdk.variant.vcf;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.SeekableByteChannel;
@@ -144,18 +143,6 @@ public class VCFIteratorBuilder {
      */
     public VCFIterator open(final String path, final Function<SeekableByteChannel, SeekableByteChannel> wrapper) throws IOException {
         return open(ParsingUtils.openInputStream(path, wrapper));
-    }
-
-    /**
-     * creates a VCF iterator from a File
-     *
-     * @param file the file (can be bcf, vcf, vcf.gz)
-     * @return the VCFIterator
-     * @throws IOException
-     */
-    @SuppressWarnings("static-method")
-    public VCFIterator open(final File file) throws IOException {
-        return this.open(file.toPath());
     }
 
     /** implementation of VCFIterator, reading VCF */

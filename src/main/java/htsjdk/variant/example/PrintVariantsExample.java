@@ -34,7 +34,6 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Path;
@@ -62,7 +61,7 @@ public final class PrintVariantsExample {
             System.out.println("Usage: " + PrintVariantsExample.class.getCanonicalName() + " inFile [outFile]");
             System.exit(1);
         }
-        final File inputFile = new File(args[0]);
+        final Path inputFile = Path.of(args[0]);
         final Path outputPath = args.length >= 2 ? Path.of(args[1]) : null;
 
         final long start = System.currentTimeMillis();
@@ -71,7 +70,7 @@ public final class PrintVariantsExample {
         printConfigurationInfo();
 
         try (final VariantContextWriter writer = outputPath == null ? null : new VariantContextWriterBuilder().setOutputPath(outputPath).setOutputFileType(VariantContextWriterBuilder.OutputType.VCF).unsetOption(Options.INDEX_ON_THE_FLY).build();
-             final AbstractFeatureReader<VariantContext, LineIterator> reader = AbstractFeatureReader.getFeatureReader(inputFile.getAbsolutePath(), new VCFCodec(), false)) {
+             final AbstractFeatureReader<VariantContext, LineIterator> reader = AbstractFeatureReader.getFeatureReader(inputFile.toAbsolutePath().toString(), new VCFCodec(), false)) {
 
             log.info(reader.getClass().getSimpleName() + " hasIndex " + reader.hasIndex());
             if (writer != null) {

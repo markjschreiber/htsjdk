@@ -31,7 +31,6 @@ import htsjdk.samtools.sra.SRAAccession;
 import htsjdk.samtools.util.*;
 import htsjdk.samtools.util.zip.InflaterFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -417,11 +416,9 @@ public abstract class SamReaderFactory {
                                     data.asUnbufferedInputStream(),
                                     Math.max(Defaults.BUFFER_SIZE, BlockCompressedStreamConstants.MAX_COMPRESSED_BLOCK_SIZE)
                             );
-                    File sourceFile = data.asFile();
                     Path sourcePath = data.asPath();
                     // calling asFile/asPath is safe even if indexMaybe is a Google Cloud Storage bucket
                     // (in that case we just get null)
-                    final File indexFile = indexMaybe == null ? null : indexMaybe.asFile();
                     final Path indexPath = indexMaybe == null ? null : indexMaybe.asPath();
                     if (SamStreams.isBAMFile(bufferedStream)) {
                         if (sourcePath == null || !java.nio.file.Files.isRegularFile(sourcePath)) {
@@ -473,11 +470,11 @@ public abstract class SamReaderFactory {
                             bufferedStream.close();
                             primitiveSamReader = new CRAMFileReader(sourcePath, indexPath, referenceSource, validationStringency);
                         }
-                    } else if (sourceFile != null && isSra(sourceFile)) {
+                    } else if (sourcePath != null && isSra(sourcePath)) {
                         if (bufferedStream != null) {
                             bufferedStream.close();
                         }
-                        primitiveSamReader = new SRAFileReader(new SRAAccession(sourceFile.getPath()));
+                        primitiveSamReader = new SRAFileReader(new SRAAccession(sourcePath.toString()));
                     } else {
                         if (indexDefined) {
                             bufferedStream.close();
@@ -502,13 +499,13 @@ public abstract class SamReaderFactory {
         }
 
         /** Attempts to detect whether the file is an SRA accessioned file. If SRA support is not available, returns false. */
-        private boolean isSra(final File sourceFile) {
+        private boolean isSra(final Path sourcePath) {
             try {
                 // if SRA fails to initialize (the most common reason is a failure to find/load native libraries),
                 // it will throw a subclass of java.lang.Error and here we only catch subclasses of java.lang.Exception
                 //
                 // Note: SRA initialization errors should not be ignored, but rather shown to user
-                return SRAAccession.isValid(sourceFile.getPath());
+                return SRAAccession.isValid(sourcePath.toString());
             } catch (final Exception e) {
                 return false;
             }

@@ -31,11 +31,11 @@ import htsjdk.samtools.Defaults;
 import htsjdk.samtools.util.Log;
 import gov.nih.nlm.ncbi.ngs.NGS;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
@@ -112,13 +112,13 @@ public class SRAAccession implements Serializable {
      */
     public static boolean isValid(String acc) {
         boolean looksLikeSRA = false;
-        File f = new File(acc);
-        if (f.isFile()) {
+        Path p = Path.of(acc);
+        if (Files.isRegularFile(p)) {
             byte[] buffer = new byte[8];
             byte[] signature1 = "NCBI.sra".getBytes();
             byte[] signature2 = "NCBInenc".getBytes();
 
-            try (InputStream is = new FileInputStream(f)) {
+            try (InputStream is = Files.newInputStream(p)) {
                 int numRead = is.read(buffer);
 
                 looksLikeSRA = numRead == buffer.length &&
@@ -126,7 +126,7 @@ public class SRAAccession implements Serializable {
             } catch (IOException e) {
                 looksLikeSRA = false;
             }
-        } else if (f.exists()) {
+        } else if (Files.exists(p)) {
             // anything else local other than a file is not an SRA archive
             looksLikeSRA = false;
         } else {

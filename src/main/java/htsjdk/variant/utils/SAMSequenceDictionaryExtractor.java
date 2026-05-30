@@ -33,7 +33,6 @@ import htsjdk.samtools.util.*;
 import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.variant.vcf.VCFFileReader;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -125,21 +124,7 @@ public class SAMSequenceDictionaryExtractor {
             applicableExtensions = extensions;
         }
 
-        /**
-         * @deprecated in favor of {@link VCFFileReader##extractDictionary(Path) }
-         * */
-        @Deprecated
-        SAMSequenceDictionary extractDictionary(final File file) {return extractDictionary(file.toPath());}
-
         abstract SAMSequenceDictionary extractDictionary(final Path file);
-
-        /**
-         * @deprecated in favor of {@link SAMSequenceDictionaryExtractor##forFile(Path) }
-         */
-        @Deprecated
-        static TYPE forFile(final File dictionaryExtractable) {
-            return forFile(dictionaryExtractable.toPath());
-        }
 
         static TYPE forFile(final Path dictionaryExtractable) {
             for (final TYPE type : TYPE.values()) {
@@ -159,13 +144,8 @@ public class SAMSequenceDictionaryExtractor {
     }
 
     /**
-     * @deprecated in favor of {@link SAMSequenceDictionaryExtractor#extractDictionary(Path) }
+     * Extract a SAMSequenceDictionary from the given path.
      */
-    @Deprecated
-    public static SAMSequenceDictionary extractDictionary(final File file) {
-        return extractDictionary(file.toPath());
-    }
-
     public static SAMSequenceDictionary extractDictionary(final Path path) {
         return TYPE.forFile(path).extractDictionary(path);
     }

@@ -2,7 +2,8 @@ package htsjdk.samtools;
 
 import htsjdk.samtools.util.Log;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -69,10 +70,10 @@ public class Defaults {
     public static final int NON_ZERO_BUFFER_SIZE;
 
     /**
-     * The reference FASTA file.  If this is not set, the file is null.  This file may be required for reading
+     * The reference FASTA file.  If this is not set, the path is null.  This file may be required for reading
      * writing SAM files (ex. CRAM).  Default = null.
      */
-    public static final File REFERENCE_FASTA;
+    public static final Path REFERENCE_FASTA;
 
     /** Custom reader factory able to handle URL based resources like ga4gh.
      *  Expected format: <url prefix>,<fully qualified factory class name>[,<jar file name>]
@@ -132,7 +133,7 @@ public class Defaults {
         } else {
             NON_ZERO_BUFFER_SIZE = BUFFER_SIZE;
         }
-        REFERENCE_FASTA = getFileProperty("reference_fasta", null);
+        REFERENCE_FASTA = getPathProperty("reference_fasta", null);
         USE_CRAM_REF_DOWNLOAD = getBooleanProperty("use_cram_ref_download", false);
         EBI_REFERENCE_SERVICE_URL_MASK = "https://www.ebi.ac.uk/ena/cram/md5/%s";
         CUSTOM_READER_FACTORY = getStringProperty("custom_reader", "");
@@ -202,17 +203,17 @@ public class Defaults {
         return Integer.parseInt(value);
     }
 
-    /** Gets a File system property, prefixed with "samjdk." using the default if the property does not exist. */
-    private static File getFileProperty(final String name, final String def) {
+    /** Gets a Path system property, prefixed with "samjdk." using the default if the property does not exist. */
+    private static Path getPathProperty(final String name, final String def) {
         final String value = getStringProperty(name, def);
-        Optional<File> maybeFile = Optional.ofNullable(value).map(File::new);
-        maybeFile.ifPresent(f -> {
-            if (!f.exists()) {
-                log.warn(String.format("File property for %s has value %s. However file %s doesn't exist.", SAMJDK_PREFIX + name, value, f.getAbsolutePath()));
+        Optional<Path> maybePath = Optional.ofNullable(value).map(Path::of);
+        maybePath.ifPresent(p -> {
+            if (!Files.exists(p)) {
+                log.warn(String.format("File property for %s has value %s. However file %s doesn't exist.", SAMJDK_PREFIX + name, value, p.toAbsolutePath()));
             } else {
-                log.info(String.format("Found file for property %s: %s ", SAMJDK_PREFIX + name, f.getAbsolutePath()));
+                log.info(String.format("Found file for property %s: %s ", SAMJDK_PREFIX + name, p.toAbsolutePath()));
             }
         });
-        return maybeFile.orElse(null);
+        return maybePath.orElse(null);
     }
 }

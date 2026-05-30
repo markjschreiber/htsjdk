@@ -27,7 +27,6 @@ import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -172,10 +171,6 @@ public abstract class AbstractIndex implements MutableIndex {
         }
     }
 
-    public AbstractIndex(final File featureFile) {
-        this(IOUtil.toPath(featureFile));
-    }
-
     public AbstractIndex(final Path featurePath) {
         this();
         this.indexedPath = featurePath.toAbsolutePath();
@@ -215,15 +210,8 @@ public abstract class AbstractIndex implements MutableIndex {
     }
 
     /**
-     * Gets the indexed file.
-     * @throws UnsupportedOperationException if the path cannot be represented as a file.
-     * @deprecated on 03/2017. Use {@link #getIndexedPath()} instead.
+     * Gets the indexed path.
      */
-    @Deprecated
-    public File getIndexedFile() {
-        return getIndexedPath().toFile();
-    }
-
     public Path getIndexedPath() {
         return indexedPath;
     }

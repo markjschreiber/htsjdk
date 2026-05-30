@@ -22,7 +22,6 @@
  */
 package htsjdk.samtools.apps;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -34,7 +33,7 @@ import java.nio.channels.FileChannel;
 @Deprecated
 public class TimeChannel {
     public static void main(String[] args) throws Exception {
-        long fileSize = new File(args[0]).length();
+        long fileSize = java.nio.file.Files.size(java.nio.file.Path.of(args[0]));
         FileInputStream in = new FileInputStream(args[0]);
         FileChannel channel = in.getChannel();
         byte[] buf = new byte[64 * 1024];

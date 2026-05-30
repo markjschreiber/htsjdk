@@ -35,7 +35,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -232,7 +231,7 @@ public class IOUtil {
     
     public static SeekableStream maybeBufferedSeekableStream(final Path path) {
         try {
-            return maybeBufferedSeekableStream(new SeekableFileStream(path.toFile()));
+            return maybeBufferedSeekableStream(new SeekableFileStream(path));
         } catch (final FileNotFoundException e) {
             throw new RuntimeIOException(e);
         }
@@ -284,19 +283,6 @@ public class IOUtil {
     public static void deletePaths(final Path... paths) {
         for(Path path: paths){
             deletePath(path);
-        }
-    }
-
-    /**
-     * Delete a list of files, and write a warning message if one could not be deleted.
-     *
-     * @param files Files to be deleted.
-     * @deprecated Use {@link #deletePaths(Path...)} instead
-     */
-    @Deprecated
-    public static void deleteFiles(final File... files) {
-        for (final File f : files) {
-            deletePath(toPath(f));
         }
     }
 
@@ -449,18 +435,6 @@ public class IOUtil {
         else if (!Files.isReadable(path)) {
             throw new SAMException("File exists but is not readable: " + path.toUri().toString());
         }
-    }
-
-    /**
-     * Checks that a file is non-null, exists, is not a directory and is readable.  If any
-     * condition is false then a runtime exception is thrown.
-     *
-     * @param file the file to check for readability
-     * @deprecated Use {@link #assertFileIsReadable(Path)} instead
-     */
-    @Deprecated
-    public static void assertFileIsReadable(final File file) {
-        assertFileIsReadable(toPath(file));
     }
 
     /**
@@ -635,18 +609,6 @@ public class IOUtil {
             throw new SAMException("Error opening file: " + path, ioe);
         }
 
-    }
-
-    /**
-     * Opens a file for reading, decompressing it if necessary
-     *
-     * @param file  The file to open
-     * @return the input stream to read from
-     * @deprecated Use {@link #openFileForReading(Path)} instead
-     */
-    @Deprecated
-    public static InputStream openFileForReading(final File file) {
-        return openFileForReading(toPath(file));
     }
 
     /**
@@ -891,14 +853,6 @@ public class IOUtil {
     /** Checks that a path exists and is readable, and then returns a buffered reader for it. */
     public static BufferedReader openFileForBufferedReading(final Path path) {
         return new BufferedReader(new InputStreamReader(openFileForReading(path)), Defaults.NON_ZERO_BUFFER_SIZE);
-    }
-
-    /** Checks that a file exists and is readable, and then returns a buffered reader for it. 
-     * @deprecated Use {@link #openFileForBufferedReading(Path)} instead
-     */
-    @Deprecated
-    public static BufferedReader openFileForBufferedReading(final File file) {
-        return openFileForBufferedReading(toPath(file));
     }
 
     /** Takes a string and replaces any characters that are not safe for filenames with an underscore */
@@ -1160,20 +1114,6 @@ public class IOUtil {
                 throw new RuntimeIOException(e);
             }
         }).collect(Collectors.toList());
-    }
-
-    /**
-     * Converts a File to a Path, preserving nullness.
-     * This method is provided for backward compatibility during migration.
-     * New code should use Path directly.
-     *
-     * @param fileOrNull a File, or null
-     * @return the corresponding Path (or null)
-     * @deprecated Use Path directly instead of File
-     */
-    @Deprecated
-    public static Path toPath(File fileOrNull) {
-        return (null == fileOrNull ? null : fileOrNull.toPath());
     }
 
     /**

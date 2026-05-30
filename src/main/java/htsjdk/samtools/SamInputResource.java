@@ -33,7 +33,9 @@ import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Lazy;
 import htsjdk.samtools.util.RuntimeIOException;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -84,9 +86,12 @@ public class SamInputResource {
         return String.format("data=%s;index=%s", source, index);
     }
 
-    /** Creates a {@link SamInputResource} reading from the provided resource, with no index. */
-    public static SamInputResource of(final File file) {
-        return new SamInputResource(new FileInputResource(file));
+    /** Creates a {@link SamInputResource} reading from the provided resource, with no index. 
+     * @deprecated Use {@link #of(Path)} instead
+     */
+    @Deprecated
+    public static SamInputResource of(final java.io.File file) {
+        return new SamInputResource(new FileInputResource(file.toPath()));
     }
 
     /** Creates a {@link SamInputResource} reading from the provided resource, with no index. */
@@ -105,7 +110,7 @@ public class SamInputResource {
         // To work around this bug, we fall back to using a FileInputResource rather than a PathInputResource
         // when we encounter a non-regular file using the default NIO filesystem (file://)
         if (path.getFileSystem() == FileSystems.getDefault() && !Files.isRegularFile(path)) {
-            return of(path.toFile());
+            return new SamInputResource(new FileInputResource(path));
         } else {
             return new SamInputResource(new PathInputResource(path));
         }
@@ -178,12 +183,15 @@ public class SamInputResource {
       } catch (MalformedURLException e) {
        // ignore
       }
-      return of(new File(string));
+      return of(Path.of(string));
     }
     
-    /** Updates the index to point at the provided resource, then returns itself. */
-    public SamInputResource index(final File file) {
-        this.index = new FileInputResource(file);
+    /** Updates the index to point at the provided resource, then returns itself. 
+     * @deprecated Use {@link #index(Path)} instead
+     */
+    @Deprecated
+    public SamInputResource index(final java.io.File file) {
+        this.index = new FileInputResource(file.toPath());
         return this;
     }
 
@@ -237,8 +245,8 @@ abstract class InputResource {
         return type;
     }
 
-    /** Returns null if this resource cannot be represented as a {@link File}. */
-    abstract File asFile();
+    /** Returns null if this resource cannot be represented as a {@link java.io.File}. */
+    abstract java.io.File asFile();
 
     /** Returns null if this resource cannot be represented as a {@link Path}. */
     abstract Path asPath();
@@ -289,12 +297,12 @@ abstract class InputResource {
 
 class FileInputResource extends InputResource {
 
-    final File fileResource;
+    final Path pathResource;
     final Lazy<SeekableStream> lazySeekableStream = new Lazy<>(new Supplier<SeekableStream>() {
         @Override
         public SeekableStream get() {
             try {
-                return new SeekableFileStream(fileResource);
+                return new SeekableFileStream(pathResource);
             } catch (final FileNotFoundException e) {
                 throw new RuntimeIOException(e);
             }
@@ -302,19 +310,24 @@ class FileInputResource extends InputResource {
     });
 
 
-    FileInputResource(final File fileResource) {
+    FileInputResource(final java.io.File fileResource) {
         super(Type.FILE);
-        this.fileResource = fileResource;
+        this.pathResource = fileResource.toPath();
+    }
+
+    FileInputResource(final Path pathResource) {
+        super(Type.FILE);
+        this.pathResource = pathResource;
     }
 
     @Override
-    public File asFile() {
-        return fileResource;
+    public java.io.File asFile() {
+        return pathResource.toFile();
     }
 
     @Override
     public Path asPath() {
-        return IOUtil.toPath(fileResource);
+        return pathResource;
     }
 
     @Override
@@ -330,7 +343,7 @@ class FileInputResource extends InputResource {
     public SeekableStream asUnbufferedSeekableStream() {
         //if the file doesn't exist, the try to open the stream anyway because users might be expecting the exception
         //if it not a regular file than we won't be able to seek on it, so return null
-        if (!fileResource.exists() || fileResource.isFile()) {
+        if (!Files.exists(pathResource) || Files.isRegularFile(pathResource)) {
             return lazySeekableStream.get();
         } else {
             return null;
@@ -344,8 +357,8 @@ class FileInputResource extends InputResource {
             return seekableStream;
         } else {
             try {
-                return new FileInputStream(fileResource);
-            } catch (FileNotFoundException e) {
+                return Files.newInputStream(pathResource);
+            } catch (IOException e) {
                 throw new RuntimeIOException(e);
             }
         }
@@ -385,7 +398,7 @@ class PathInputResource extends InputResource {
     }
 
     @Override
-    public File asFile() {
+    public java.io.File asFile() {
         try {
             return asPath().toFile();
         } catch (UnsupportedOperationException e) {
@@ -440,7 +453,7 @@ class UrlInputResource extends InputResource {
     }
 
     @Override
-    public File asFile() {
+    public java.io.File asFile() {
         return null;
     }
 
@@ -485,7 +498,7 @@ class SeekableStreamInputResource extends InputResource {
     }
 
     @Override
-    File asFile() {
+    java.io.File asFile() {
         return null;
     }
 
@@ -525,7 +538,7 @@ class InputStreamInputResource extends InputResource {
     }
 
     @Override
-    File asFile() {
+    java.io.File asFile() {
         return null;
     }
 
@@ -565,7 +578,7 @@ class SRAInputResource extends InputResource {
     }
 
     @Override
-    File asFile() {
+    java.io.File asFile() {
         return null;
     }
 
@@ -606,7 +619,7 @@ class HtsgetInputResource extends InputResource {
     }
 
     @Override
-    File asFile() {
+    java.io.File asFile() {
         return null;
     }
 

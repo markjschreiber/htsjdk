@@ -34,7 +34,6 @@ import htsjdk.samtools.util.Md5CalculatingOutputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.samtools.util.zip.DeflaterFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -321,7 +320,7 @@ public class SAMFileWriterFactory implements Cloneable {
         if (maxRecordsInRam != null) {
             writer.setMaxRecordsInRam(maxRecordsInRam);
         }
-        if (this.tmpDir != null) writer.setTempDirectory(this.tmpDir.toFile());
+        if (this.tmpDir != null) writer.setTempDirectory(this.tmpDir);
         writer.setHeader(header);
         if (createIndex && writer.getSortOrder().equals(SAMFileHeader.SortOrder.coordinate)) {
             writer.enableBamIndexConstruction();
@@ -437,7 +436,7 @@ public class SAMFileWriterFactory implements Cloneable {
         if (maxRecordsInRam != null) {
             writer.setMaxRecordsInRam(maxRecordsInRam);
         }
-        if (this.tmpDir != null) writer.setTempDirectory(this.tmpDir.toFile());
+        if (this.tmpDir != null) writer.setTempDirectory(this.tmpDir);
         writer.setHeader(header);
 
         if (this.useAsyncIo) return new AsyncSAMFileWriter(writer, this.asyncOutputBufferSize);

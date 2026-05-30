@@ -6,11 +6,11 @@ import htsjdk.io.IOPath;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Path;
 
 /**
@@ -28,9 +28,9 @@ public class IOUtils {
      */
     public static IOPath createTempPath(final String prefix, final String suffix) {
         try {
-            final File tempFile = File.createTempFile(prefix, suffix);
-            tempFile.deleteOnExit();
-            return new HtsPath(tempFile.getAbsolutePath());
+            final Path tempPath = Files.createTempFile(prefix, suffix);
+            tempPath.toFile().deleteOnExit();
+            return new HtsPath(tempPath.toAbsolutePath().toString());
         } catch (final IOException e) {
             throw new HtsjdkIOException(e);
         }

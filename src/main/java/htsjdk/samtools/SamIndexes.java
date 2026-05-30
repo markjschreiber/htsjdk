@@ -8,10 +8,10 @@ import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.RuntimeIOException;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -33,8 +33,8 @@ public enum SamIndexes {
         this.magic = magic;
     }
 
-    public static InputStream openIndexFileAsBaiOrNull(final File file, final SAMSequenceDictionary dictionary) throws IOException {
-        return openIndexUrlAsBaiOrNull(file.toURI().toURL(), dictionary);
+    public static InputStream openIndexFileAsBaiOrNull(final Path path, final SAMSequenceDictionary dictionary) throws IOException {
+        return openIndexUrlAsBaiOrNull(path.toUri().toURL(), dictionary);
     }
 
     public static InputStream openIndexUrlAsBaiOrNull(final URL url, final SAMSequenceDictionary dictionary) throws IOException {

@@ -34,7 +34,7 @@ public class Gff3Writer implements Closeable {
             throw new TribbleException("File " + path + " does not have extension consistent with gff3");
         }
 
-        final OutputStream outputStream = IOUtil.hasGzipFileExtension(path)? new BlockCompressedOutputStream(path.toFile()) : Files.newOutputStream(path);
+        final OutputStream outputStream = IOUtil.hasGzipFileExtension(path)? new BlockCompressedOutputStream(path) : Files.newOutputStream(path);
         out = new BufferedOutputStream(outputStream);
         //start with version directive
         initialize();

@@ -27,10 +27,9 @@ package htsjdk.tribble.example;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.linear.LinearIndex;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 
 public class IndexToTable {
@@ -53,10 +52,10 @@ public class IndexToTable {
             printUsage();
 
         //LinearIndex.enableAdaptiveIndexing = false;
-        LinearIndex idx = (LinearIndex) IndexFactory.loadIndex(new File(args[0]).getAbsolutePath());
+        LinearIndex idx = (LinearIndex) IndexFactory.loadIndex(Path.of(args[0]).toAbsolutePath().toString());
         try {
-            idx.writeTable(new PrintStream(new FileOutputStream(new File(args[1]))));
-        } catch ( FileNotFoundException e ) {
+            idx.writeTable(new PrintStream(Files.newOutputStream(Path.of(args[1]))));
+        } catch ( Exception e ) {
             e.printStackTrace();
             System.exit(1);
         }

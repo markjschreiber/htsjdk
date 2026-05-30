@@ -17,10 +17,10 @@
  */
 package htsjdk.samtools.seekablestream;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,18 +39,18 @@ public class SeekableFileStream extends SeekableStream {
             Collections.synchronizedCollection(new HashSet<SeekableFileStream>());
 
 
-    File file;
+    private final Path path;
     RandomAccessFile fis;
 
-    public SeekableFileStream(final File file) throws FileNotFoundException {
-        this.file = file;
-        fis = new RandomAccessFile(file, "r");
+    public SeekableFileStream(final Path path) throws FileNotFoundException {
+        this.path = path;
+        fis = new RandomAccessFile(path.toFile(), "r");
         allInstances.add(this);
     }
 
     @Override
     public long length() {
-        return file.length();
+        return path.toFile().length();
     }
 
     @Override
@@ -108,7 +108,7 @@ public class SeekableFileStream extends SeekableStream {
 
     @Override
     public String getSource() {
-        return file.getAbsolutePath();
+        return path.toAbsolutePath().toString();
     }
 
 

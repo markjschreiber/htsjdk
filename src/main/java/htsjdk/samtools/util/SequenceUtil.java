@@ -35,8 +35,8 @@ import htsjdk.samtools.SAMTag;
 import htsjdk.samtools.fastq.FastqConstants;
 import htsjdk.utils.ValidationUtils;
 
-import java.io.File;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -346,11 +346,11 @@ public class SequenceUtil {
      * Throws an exception if both parameters are non-null and unequal, including the filenames.
      */
     public static void assertSequenceDictionariesEqual(final SAMSequenceDictionary s1, final SAMSequenceDictionary s2,
-                                                       final File f1, final File f2) {
+                                                       final Path p1, final Path p2) {
         try {
             assertSequenceDictionariesEqual(s1, s2);
         } catch (final SequenceListsDifferException e) {
-            throw new SequenceListsDifferException("In files " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath(), e);
+            throw new SequenceListsDifferException("In files " + p1.toAbsolutePath() + " and " + p2.toAbsolutePath(), e);
         }
     }
 

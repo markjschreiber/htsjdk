@@ -26,7 +26,6 @@ package htsjdk.samtools;
 import htsjdk.samtools.cram.BAIEntry;
 import htsjdk.samtools.util.BlockCompressedFilePointerUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 

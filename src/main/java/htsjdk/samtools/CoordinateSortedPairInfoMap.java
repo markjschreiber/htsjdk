@@ -28,11 +28,11 @@ import htsjdk.samtools.util.CloserUtil;
 import htsjdk.samtools.util.FileAppendStreamLRUCache;
 import htsjdk.samtools.util.IOUtil;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -56,7 +56,7 @@ public class CoordinateSortedPairInfoMap<KEY, REC> implements Iterable<Map.Entry
     /**
      * directory where files will go
      */
-    private final File workDir = IOUtil.createTempDir("CSPI.tmp").toFile();
+    private final Path workDir = IOUtil.createTempDir("CSPI.tmp");
     private int sequenceIndexOfMapInRam = INVALID_SEQUENCE_INDEX;
     private Map<KEY, REC> mapInRam = null;
     private final FileAppendStreamLRUCache outputStreams;
@@ -71,7 +71,7 @@ public class CoordinateSortedPairInfoMap<KEY, REC> implements Iterable<Map.Entry
 
     public CoordinateSortedPairInfoMap(final int maxOpenFiles, final Codec<KEY, REC> elementCodec) {
         this.elementCodec = elementCodec;
-        workDir.deleteOnExit();
+        workDir.toFile().deleteOnExit();
         outputStreams = new FileAppendStreamLRUCache(maxOpenFiles);
     }
 
@@ -95,8 +95,8 @@ public class CoordinateSortedPairInfoMap<KEY, REC> implements Iterable<Map.Entry
 
             // Spill map in RAM to disk
             if (mapInRam != null) {
-                final File spillFile = makeFileForSequence(sequenceIndexOfMapInRam);
-                if (spillFile.exists()) throw new IllegalStateException(spillFile + " should not exist.");
+                final Path spillFile = makeFileForSequence(sequenceIndexOfMapInRam);
+                if (Files.exists(spillFile)) throw new IllegalStateException(spillFile + " should not exist.");
                 if (!mapInRam.isEmpty()) {
                     // Do not create file or entry in sizeOfMapOnDisk if there is nothing to write.
                     final OutputStream os = getOutputStreamForSequence(sequenceIndexOfMapInRam);
@@ -114,17 +114,17 @@ public class CoordinateSortedPairInfoMap<KEY, REC> implements Iterable<Map.Entry
             sequenceIndexOfMapInRam = sequenceIndex;
 
             // Load map from disk if it existed
-            File mapOnDisk = makeFileForSequence(sequenceIndex);
+            Path mapOnDisk = makeFileForSequence(sequenceIndex);
             if (outputStreams.containsKey(mapOnDisk)) {
                 outputStreams.remove(mapOnDisk).close();
             }
             final Integer numRecords = sizeOfMapOnDisk.remove(sequenceIndex);
-            if (mapOnDisk.exists()) {
+            if (Files.exists(mapOnDisk)) {
                 if (numRecords == null)
                     throw new IllegalStateException("null numRecords for " + mapOnDisk);
-                FileInputStream is = null;
+                InputStream is = null;
                 try {
-                    is = new FileInputStream(mapOnDisk);
+                    is = Files.newInputStream(mapOnDisk);
                     elementCodec.setInputStream(is);
                     for (int i = 0; i < numRecords; ++i) {
                         final Map.Entry<KEY, REC> keyAndRecord = elementCodec.decode();
@@ -136,7 +136,7 @@ public class CoordinateSortedPairInfoMap<KEY, REC> implements Iterable<Map.Entry
                 } finally {
                     CloserUtil.close(is);
                 }
-                htsjdk.samtools.util.IOUtil.deleteFiles(mapOnDisk);
+                htsjdk.samtools.util.IOUtil.deletePaths(mapOnDisk);
             } else if (numRecords != null && numRecords > 0)
                 throw new IllegalStateException("Non-zero numRecords but " + mapOnDisk + " does not exist");
         } catch (IOException e) {
@@ -170,9 +170,9 @@ public class CoordinateSortedPairInfoMap<KEY, REC> implements Iterable<Map.Entry
         }
     }
 
-    private File makeFileForSequence(final int index) {
-        final File file = new File(workDir, index + ".tmp");
-        file.deleteOnExit();
+    private Path makeFileForSequence(final int index) {
+        final Path file = workDir.resolve(index + ".tmp");
+        file.toFile().deleteOnExit();
         return file;
     }
 

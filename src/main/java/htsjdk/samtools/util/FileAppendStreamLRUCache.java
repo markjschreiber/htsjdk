@@ -25,11 +25,11 @@ package htsjdk.samtools.util;
 
 import htsjdk.samtools.SAMException;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 /**
  * LRU cache of OutputStreams to handle situation in which it is necessary to have more FileOutputStreams
@@ -41,39 +41,39 @@ import java.io.OutputStream;
  *
  * @author alecw@broadinstitute.org
  */
-public class FileAppendStreamLRUCache extends ResourceLimitedMap<File, OutputStream> {
+public class FileAppendStreamLRUCache extends ResourceLimitedMap<Path, OutputStream> {
     public FileAppendStreamLRUCache(final int cacheSize) {
         super(cacheSize, new Functor());
     }
 
-    private static class Functor implements ResourceLimitedMapFunctor<File, OutputStream> {
+    private static class Functor implements ResourceLimitedMapFunctor<Path, OutputStream> {
         @Override
-        public OutputStream makeValue(final File file) {
+        public OutputStream makeValue(final Path path) {
             try {
-                return IOUtil.maybeBufferOutputStream(new FileOutputStream(file, true));
+                return IOUtil.maybeBufferOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND));
             }
-            catch (final FileNotFoundException e) {
+            catch (final IOException e) {
                 // In case the file could not be opened because of too many file handles, try to force
                 // file handles to be closed.
                 System.gc();
                 System.runFinalization();
                 try {
-                    return IOUtil.maybeBufferOutputStream(new FileOutputStream(file, true));
+                    return IOUtil.maybeBufferOutputStream(Files.newOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.APPEND));
                 }
-                catch (final FileNotFoundException e2) {
-                    throw new SAMException(file + "not found", e2);
+                catch (final IOException e2) {
+                    throw new SAMException(path + " not found", e2);
                 }
             }
         }
 
         @Override
-        public void finalizeValue(final File file, final OutputStream out) {
+        public void finalizeValue(final Path path, final OutputStream out) {
             try {
                 out.flush();
                 out.close();
             }
             catch (final IOException e) {
-                throw new SAMException("Exception closing FileOutputStream for " + file, e);
+                throw new SAMException("Exception closing OutputStream for " + path, e);
             }
         }
     }

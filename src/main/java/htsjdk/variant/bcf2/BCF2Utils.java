@@ -29,12 +29,11 @@ import htsjdk.samtools.util.FileExtensions;
 import htsjdk.tribble.TribbleException;
 import htsjdk.variant.vcf.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -182,23 +181,21 @@ public final class BCF2Utils {
      * @param vcfFile
      * @return the BCF
      */
-    public static final File shadowBCF(final File vcfFile) {
-        final String path = vcfFile.getAbsolutePath();
-        if ( path.contains(FileExtensions.VCF) )
-            return new File(path.replace(FileExtensions.VCF, FileExtensions.BCF));
+    public static final Path shadowBCF(final Path vcfPath) {
+        final String pathStr = vcfPath.toAbsolutePath().toString();
+        if ( pathStr.contains(FileExtensions.VCF) )
+            return Path.of(pathStr.replace(FileExtensions.VCF, FileExtensions.BCF));
         else {
-            final File bcf = new File( path + FileExtensions.BCF );
-            if ( bcf.canRead() )
+            final Path bcf = Path.of( pathStr + FileExtensions.BCF );
+            if ( Files.isReadable(bcf) )
                 return bcf;
             else {
                 try {
                     // this is the only way to robustly decide if we could actually write to BCF
-                    final FileOutputStream o = new FileOutputStream(bcf);
+                    final java.io.OutputStream o = Files.newOutputStream(bcf);
                     o.close();
-                    bcf.delete();
+                    Files.delete(bcf);
                     return bcf;
-                } catch ( FileNotFoundException e ) {
-                    return null;
                 } catch ( IOException e ) {
                     return null;
                 }

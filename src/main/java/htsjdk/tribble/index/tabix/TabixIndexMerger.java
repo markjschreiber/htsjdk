@@ -30,9 +30,9 @@ import htsjdk.samtools.LinearIndex;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -107,7 +107,7 @@ public class TabixIndexMerger extends IndexMerger<TabixIndex> {
             mergedBinningIndexContentList.add(binningIndexContent);
         }
         final TabixIndex tabixIndex = new TabixIndex(formatSpec, sequenceNames, mergedBinningIndexContentList.toArray(new BinningIndexContent[0]));
-        try (LittleEndianOutputStream los = new LittleEndianOutputStream(new BlockCompressedOutputStream(out, (File) null))) {
+        try (LittleEndianOutputStream los = new LittleEndianOutputStream(new BlockCompressedOutputStream(out, (Path) null))) {
             tabixIndex.write(los);
         }
     }

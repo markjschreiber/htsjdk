@@ -25,7 +25,6 @@ package htsjdk.samtools.util;
 
 import htsjdk.samtools.util.zip.DeflaterFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -119,19 +118,10 @@ public class BlockCompressedOutputStream
     /**
      * Uses default compression level, which is 5 unless changed by setCompressionLevel
      * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
-     * Use {@link #BlockCompressedOutputStream(File, int, DeflaterFactory)} to specify a custom factory.
+     * Use {@link #BlockCompressedOutputStream(Path, int, DeflaterFactory)} to specify a custom factory.
      */
     public BlockCompressedOutputStream(final String filename) {
         this(filename, defaultCompressionLevel);
-    }
-
-    /**
-     * Uses default compression level, which is 5 unless changed by setCompressionLevel
-     * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
-     * Use {@link #BlockCompressedOutputStream(File, int, DeflaterFactory)} to specify a custom factory.
-     */
-    public BlockCompressedOutputStream(final File file) {
-        this(file, defaultCompressionLevel);
     }
 
     /**
@@ -149,17 +139,7 @@ public class BlockCompressedOutputStream
      * @param compressionLevel 1 <= compressionLevel <= 9
      */
     public BlockCompressedOutputStream(final String filename, final int compressionLevel) {
-        this(new File(filename), compressionLevel);
-    }
-
-    /**
-     * Prepare to compress at the given compression level
-     * @param compressionLevel 1 <= compressionLevel <= 9
-     * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
-     * Use {@link #BlockCompressedOutputStream(File, int, DeflaterFactory)} to specify a custom factory.
-     */
-    public BlockCompressedOutputStream(final File file, final int compressionLevel) {
-        this(file, compressionLevel, defaultDeflaterFactory);
+        this(Path.of(filename), compressionLevel);
     }
 
     /**
@@ -177,15 +157,6 @@ public class BlockCompressedOutputStream
      * @param compressionLevel 1 <= compressionLevel <= 9
      * @param deflaterFactory custom factory to create deflaters (overrides the default)
      */
-    public BlockCompressedOutputStream(final File file, final int compressionLevel, final DeflaterFactory deflaterFactory) {
-        this(IOUtil.toPath(file), compressionLevel, deflaterFactory);
-    }
-
-    /**
-     * Prepare to compress at the given compression level
-     * @param compressionLevel 1 <= compressionLevel <= 9
-     * @param deflaterFactory custom factory to create deflaters (overrides the default)
-     */
     public BlockCompressedOutputStream(final Path path, final int compressionLevel, final DeflaterFactory deflaterFactory) {
         this.file = path;
         codec = new BinaryCodec(path, true);
@@ -196,18 +167,7 @@ public class BlockCompressedOutputStream
     /**
      * Uses default compression level, which is 5 unless changed by setCompressionLevel
      * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
-     * Use {@link #BlockCompressedOutputStream(OutputStream, File, int, DeflaterFactory)} to specify a custom factory.
-     *
-     * @param file may be null
-     */
-    public BlockCompressedOutputStream(final OutputStream os, final File file) {
-        this(os, file, defaultCompressionLevel);
-    }
-
-    /**
-     * Uses default compression level, which is 5 unless changed by setCompressionLevel
-     * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
-     * Use {@link #BlockCompressedOutputStream(OutputStream, File, int, DeflaterFactory)} to specify a custom factory.
+     * Use {@link #BlockCompressedOutputStream(OutputStream, Path, int, DeflaterFactory)} to specify a custom factory.
      *
      * @param file may be null
      */
@@ -217,29 +177,10 @@ public class BlockCompressedOutputStream
 
     /**
      * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
-     * Use {@link #BlockCompressedOutputStream(OutputStream, File, int, DeflaterFactory)} to specify a custom factory.
-     */
-    public BlockCompressedOutputStream(final OutputStream os, final File file, final int compressionLevel) {
-        this(os, file, compressionLevel, defaultDeflaterFactory);
-    }
-
-    /**
-     * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
-     * Use {@link #BlockCompressedOutputStream(OutputStream, File, int, DeflaterFactory)} to specify a custom factory.
+     * Use {@link #BlockCompressedOutputStream(OutputStream, Path, int, DeflaterFactory)} to specify a custom factory.
      */
     public BlockCompressedOutputStream(final OutputStream os, final Path file, final int compressionLevel) {
         this(os, file, compressionLevel, defaultDeflaterFactory);
-    }
-
-    /**
-     * Creates the output stream.
-     * @param os output stream to create a BlockCompressedOutputStream from
-     * @param file file to which to write the output or null if not available
-     * @param compressionLevel the compression level (0-9)
-     * @param deflaterFactory custom factory to create deflaters (overrides the default)
-     */
-    public BlockCompressedOutputStream(final OutputStream os, final File file, final int compressionLevel, final DeflaterFactory deflaterFactory) {
-        this(os, IOUtil.toPath(file), compressionLevel, deflaterFactory);
     }
 
     /**
@@ -266,7 +207,7 @@ public class BlockCompressedOutputStream
      * @return A BlockCompressedOutputStream, either by wrapping the given OutputStream, or by casting if it already
      *         is a BCOS.
      */
-    public static BlockCompressedOutputStream maybeBgzfWrapOutputStream(final File location, OutputStream output) {
+    public static BlockCompressedOutputStream maybeBgzfWrapOutputStream(final Path location, OutputStream output) {
         if (!(output instanceof BlockCompressedOutputStream)) {
            return new BlockCompressedOutputStream(output, location);
         } else {

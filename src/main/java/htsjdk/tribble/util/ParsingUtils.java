@@ -30,7 +30,6 @@ import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.IOUtil;
 
 import java.awt.Color;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -422,7 +421,7 @@ public class ParsingUtils {
         } else if (IOUtil.hasScheme(resource)) {
             return Files.exists(IOUtil.getPath(resource));
         } else {
-            return (new File(resource)).exists();
+            return Files.exists(java.nio.file.Path.of(resource));
         }
     }
 

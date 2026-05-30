@@ -27,8 +27,8 @@ import htsjdk.samtools.SAMException;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.util.*;
 
-import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -83,7 +83,7 @@ public class LiftOver {
     /**
      * Load UCSC chain file in order to lift over Intervals.
      */
-    public LiftOver(File chainFile){
+    public LiftOver(Path chainFile){
         this(Chain.loadChains(chainFile));
     }
 

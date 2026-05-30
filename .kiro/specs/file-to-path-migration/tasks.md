@@ -582,7 +582,7 @@ The implementation uses **Java** as the programming language, following HTSJDK's
   - Verify compilation succeeds without File
   - _Requirements: 12.1_
 
-- [ ] 15.2 Verify no File-based public APIs remain
+- [x] 15.2 Verify no File-based public APIs remain
   - Use reflection to scan all public methods
   - Verify no public methods accept or return File
   - Document any exceptions (if absolutely necessary)
@@ -591,6 +591,7 @@ The implementation uses **Java** as the programming language, following HTSJDK's
 - [ ] 15.3 Checkpoint - Verify all tests pass
   - Run full test suite with `./gradlew test`
   - Ensure all tests pass, ask the user if questions arise.
+  - **Note**: Test compilation currently fails with ~150 errors because test code still references removed File-based APIs. Test files need to be updated to use the new Path-based APIs.
 
 - [ ] 16. Phase 13: Documentation and Migration Guide
   - Create comprehensive documentation for the migration

@@ -25,12 +25,14 @@ package htsjdk.samtools.util;
 
 import htsjdk.samtools.SAMException;
 
-import java.io.*;
-import java.nio.file.FileVisitResult;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 
 public class TestUtil {
 
@@ -42,27 +44,14 @@ public class TestUtil {
      */
     public static final String BASE_URL_FOR_HTTP_TESTS = "https://personal.broadinstitute.org/picard/testdata/";
 
-    public static File getTempDirectory(final String prefix, final String suffix) {
-        final File tempDirectory;
+    public static Path getTempDirectory(final String prefix, final String suffix) {
         try {
-            tempDirectory = File.createTempFile(prefix, suffix);
+            final Path tempDirectory = Files.createTempDirectory(prefix + suffix);
+            tempDirectory.toFile().deleteOnExit();
+            return tempDirectory;
         } catch (IOException e) {
-            throw new SAMException("Failed to create temporary file.", e);
+            throw new SAMException("Failed to create temporary directory.", e);
         }
-        if (!tempDirectory.delete())
-            throw new SAMException("Failed to delete file: " + tempDirectory);
-        if (!tempDirectory.mkdir())
-            throw new SAMException("Failed to make directory: " + tempDirectory);
-        tempDirectory.deleteOnExit();
-        return tempDirectory;
-    }
-
-    /**
-     * @deprecated Use properly spelled method. {@link #getTempDirectory}
-     */
-    @Deprecated
-    public static File getTempDirecory(final String prefix, final String suffix) {
-        return getTempDirectory(prefix, suffix);
     }
 
     /**
@@ -94,14 +83,8 @@ public class TestUtil {
      * clean up after themselves.
      *
      * @param directory The directory to be deleted (along with its subdirectories)
-     * @deprecated Since 3/19, prefer {@link IOUtil#recursiveDelete(Path)}
      */
-    @Deprecated
-    public static void recursiveDelete(final File directory) {
-        try {
-            IOUtil.recursiveDelete(directory.toPath());
-        } catch (RuntimeIOException e) {
-            // bury exception
-        }
+    public static void recursiveDelete(final Path directory) {
+        IOUtil.recursiveDelete(directory);
     }
 }

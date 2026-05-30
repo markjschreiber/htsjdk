@@ -11,6 +11,8 @@ import htsjdk.samtools.util.FileExtensions;
 import htsjdk.samtools.util.RuntimeIOException;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,11 +68,11 @@ public class CRAIIndex {
         addEntries(container.getCRAIEntries(compressorCache));
     }
 
-    public static SeekableStream openCraiFileAsBaiStream(final File cramIndexFile, final SAMSequenceDictionary dictionary) {
+    public static SeekableStream openCraiFileAsBaiStream(final Path cramIndexPath, final SAMSequenceDictionary dictionary) {
         try {
-            return openCraiFileAsBaiStream(new FileInputStream(cramIndexFile), dictionary);
+            return openCraiFileAsBaiStream(Files.newInputStream(cramIndexPath), dictionary);
         }
-        catch (final FileNotFoundException e) {
+        catch (final IOException e) {
             throw new RuntimeIOException(e);
         }
     }

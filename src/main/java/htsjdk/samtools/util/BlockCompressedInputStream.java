@@ -117,19 +117,11 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
 
     /**
      * Use this ctor if you wish to call seek()
-     * @param file source of bytes
+     * @param path source of bytes
      * @throws IOException
      */
-    public BlockCompressedInputStream(final File file) throws IOException {
-        this(file, BlockGunzipper.getDefaultInflaterFactory());
-    }
-
-
-    /**
-     * Equivalent constructor for Path as the one that takes a File. Supports seeking.
-     */
-    public BlockCompressedInputStream(final Path file) throws IOException {
-        this(new SeekablePathStream(file));
+    public BlockCompressedInputStream(final Path path) throws IOException {
+        this(path, BlockGunzipper.getDefaultInflaterFactory());
     }
 
     /**
@@ -140,19 +132,6 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
      */
     public BlockCompressedInputStream(final Path path, final InflaterFactory inflaterFactory) throws IOException {
         mFile = new SeekablePathStream(path);
-        mStream = null;
-        blockGunzipper = new BlockGunzipper(inflaterFactory);
-    }
-
-
-    /**
-     * Use this ctor if you wish to call seek()
-     * @param file source of bytes
-     * @param inflaterFactory {@link InflaterFactory} used by {@link BlockGunzipper}
-     * @throws IOException
-     */
-    public BlockCompressedInputStream(final File file, final InflaterFactory inflaterFactory) throws IOException {
-        mFile = new SeekableFileStream(file);
         mStream = null;
         blockGunzipper = new BlockGunzipper(inflaterFactory);
     }
@@ -628,16 +607,6 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
 
     /**
      *
-     * @param file the file to check
-     * @return status of the last compressed block
-     * @throws IOException
-     */
-    public static FileTermination checkTermination(final File file) throws IOException {
-        return checkTermination(IOUtil.toPath(file));
-    }
-
-    /**
-     *
      * @param path to the file to check
      * @return status of the last compressed block
      * @throws IOException
@@ -725,11 +694,6 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
             }
             totalBytesRead += bytesRead;
         }
-    }
-
-    @Deprecated
-    public static void assertNonDefectiveFile(final File file) throws IOException {
-        assertNonDefectivePath(IOUtil.toPath(file));
     }
 
     public static void assertNonDefectivePath(final Path file) throws IOException {

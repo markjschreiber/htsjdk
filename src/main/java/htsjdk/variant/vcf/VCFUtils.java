@@ -34,8 +34,9 @@ import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -135,18 +136,18 @@ public class VCFUtils {
      * Add / replace the contig header lines in the VCFHeader with the in the reference file and master reference dictionary
      *
      * @param oldHeader     the header to update
-     * @param referenceFile the file path to the reference sequence used to generate this vcf
+     * @param referencePath the path to the reference sequence used to generate this vcf
      * @param refDict       the SAM formatted reference sequence dictionary
      */
-    public static VCFHeader withUpdatedContigs(final VCFHeader oldHeader, final File referenceFile, final SAMSequenceDictionary refDict) {
-        return new VCFHeader(withUpdatedContigsAsLines(oldHeader.getMetaDataInInputOrder(), referenceFile, refDict), oldHeader.getGenotypeSamples());
+    public static VCFHeader withUpdatedContigs(final VCFHeader oldHeader, final Path referencePath, final SAMSequenceDictionary refDict) {
+        return new VCFHeader(withUpdatedContigsAsLines(oldHeader.getMetaDataInInputOrder(), referencePath, refDict), oldHeader.getGenotypeSamples());
     }
 
-    public static Set<VCFHeaderLine> withUpdatedContigsAsLines(final Set<VCFHeaderLine> oldLines, final File referenceFile, final SAMSequenceDictionary refDict) {
-        return withUpdatedContigsAsLines(oldLines, referenceFile, refDict, false);
+    public static Set<VCFHeaderLine> withUpdatedContigsAsLines(final Set<VCFHeaderLine> oldLines, final Path referencePath, final SAMSequenceDictionary refDict) {
+        return withUpdatedContigsAsLines(oldLines, referencePath, refDict, false);
     }
 
-    public static Set<VCFHeaderLine> withUpdatedContigsAsLines(final Set<VCFHeaderLine> oldLines, final File referenceFile, final SAMSequenceDictionary refDict, final boolean referenceNameOnly) {
+    public static Set<VCFHeaderLine> withUpdatedContigsAsLines(final Set<VCFHeaderLine> oldLines, final Path referencePath, final SAMSequenceDictionary refDict, final boolean referenceNameOnly) {
         final Set<VCFHeaderLine> lines = new LinkedHashSet<>(oldLines.size());
 
         for (final VCFHeaderLine line : oldLines) {
@@ -157,16 +158,17 @@ public class VCFUtils {
             lines.add(line);
         }
 
-        for (final VCFHeaderLine contigLine : makeContigHeaderLines(refDict, referenceFile))
+        for (final VCFHeaderLine contigLine : makeContigHeaderLines(refDict, referencePath))
             lines.add(contigLine);
 
         final String referenceValue;
-        if (referenceFile != null) {
+        if (referencePath != null) {
             if (referenceNameOnly) {
-                final int extensionStart = referenceFile.getName().lastIndexOf('.');
-                referenceValue = extensionStart == -1 ? referenceFile.getName() : referenceFile.getName().substring(0, extensionStart);
+                final String fileName = referencePath.getFileName().toString();
+                final int extensionStart = fileName.lastIndexOf('.');
+                referenceValue = extensionStart == -1 ? fileName : fileName.substring(0, extensionStart);
             } else {
-                referenceValue = "file://" + referenceFile.getAbsolutePath();
+                referenceValue = "file://" + referencePath.toAbsolutePath();
             }
             lines.add(new VCFHeaderLine(VCFHeader.REFERENCE_KEY, referenceValue));
         }
@@ -174,16 +176,16 @@ public class VCFUtils {
     }
 
     /**
-     * Create VCFHeaderLines for each refDict entry, and optionally the assembly if referenceFile != null
+     * Create VCFHeaderLines for each refDict entry, and optionally the assembly if referencePath != null
      *
      * @param refDict       reference dictionary
-     * @param referenceFile for assembly name.  May be null
+     * @param referencePath for assembly name.  May be null
      * @return list of vcf contig header lines
      */
     public static List<VCFContigHeaderLine> makeContigHeaderLines(final SAMSequenceDictionary refDict,
-                                                                  final File referenceFile) {
+                                                                  final Path referencePath) {
         final List<VCFContigHeaderLine> lines = new ArrayList<>();
-        final String assembly = referenceFile != null ? getReferenceAssembly(referenceFile.getName()) : null;
+        final String assembly = referencePath != null ? getReferenceAssembly(referencePath.getFileName().toString()) : null;
         for (final SAMSequenceRecord contig : refDict.getSequences())
             lines.add(makeContigHeaderLine(contig, assembly));
         return lines;
@@ -202,12 +204,12 @@ public class VCFUtils {
      *
      * @param prefix - The prefix string to be used in generating the file's name; must be at least three characters long
      * @param suffix - The suffix string to be used in generating the file's name; may be null, in which case the suffix ".tmp" will be used
-     * @return A File object referencing the newly created temporary VCF file
+     * @return A Path object referencing the newly created temporary VCF file
      * @throws IOException - if a file could not be created.
      */
-    public static File createTemporaryIndexedVcfFile(final String prefix, final String suffix) throws IOException {
-        final File out = File.createTempFile(prefix, suffix);
-        out.deleteOnExit();
+    public static Path createTemporaryIndexedVcfFile(final String prefix, final String suffix) throws IOException {
+        final Path out = Files.createTempFile(prefix, suffix);
+        out.toFile().deleteOnExit();
         String indexFileExtension = null;
         if (suffix.endsWith(FileExtensions.COMPRESSED_VCF)) {
             indexFileExtension = FileExtensions.COMPRESSED_VCF_INDEX;
@@ -215,8 +217,8 @@ public class VCFUtils {
             indexFileExtension = FileExtensions.VCF_INDEX;
         }
         if (indexFileExtension != null) {
-            final File indexOut = new File(out.getAbsolutePath() + indexFileExtension);
-            indexOut.deleteOnExit();
+            final Path indexOut = Path.of(out.toAbsolutePath().toString() + indexFileExtension);
+            indexOut.toFile().deleteOnExit();
         }
         return out;
     }
@@ -226,25 +228,25 @@ public class VCFUtils {
      * This is done so that we don't need to store the index file in the same repo
      * The copy of the input is done so that it and its index are in the same directory which is typically required.
      *
-     * @param vcfFile the vcf file to index
-     * @return File a vcf file (index file is created in same path).
+     * @param vcfPath the vcf file to index
+     * @return Path a vcf file (index file is created in same path).
      */
-    public static File createTemporaryIndexedVcfFromInput(final File vcfFile, final String tempFilePrefix) throws IOException {
+    public static Path createTemporaryIndexedVcfFromInput(final Path vcfPath, final String tempFilePrefix) throws IOException {
         final String extension;
 
-        if (vcfFile.getAbsolutePath().endsWith(FileExtensions.VCF)) extension = FileExtensions.VCF;
-        else if (vcfFile.getAbsolutePath().endsWith(FileExtensions.COMPRESSED_VCF))
+        if (vcfPath.toAbsolutePath().toString().endsWith(FileExtensions.VCF)) extension = FileExtensions.VCF;
+        else if (vcfPath.toAbsolutePath().toString().endsWith(FileExtensions.COMPRESSED_VCF))
             extension = FileExtensions.COMPRESSED_VCF;
         else
-            throw new IllegalArgumentException("couldn't find a " + FileExtensions.VCF + " or " + FileExtensions.COMPRESSED_VCF + " ending for input file " + vcfFile.getAbsolutePath());
+            throw new IllegalArgumentException("couldn't find a " + FileExtensions.VCF + " or " + FileExtensions.COMPRESSED_VCF + " ending for input file " + vcfPath.toAbsolutePath());
 
-        File output = createTemporaryIndexedVcfFile(tempFilePrefix, extension);
+        Path output = createTemporaryIndexedVcfFile(tempFilePrefix, extension);
 
-        try (final VCFFileReader in = new VCFFileReader(vcfFile.toPath(), false);
+        try (final VCFFileReader in = new VCFFileReader(vcfPath, false);
              final VariantContextWriter out = new VariantContextWriterBuilder().
                      setReferenceDictionary(in.getFileHeader().getSequenceDictionary()).
                      setOptions(EnumSet.of(Options.INDEX_ON_THE_FLY)).
-                     setOutputPath(output.toPath()).build()) {
+                     setOutputPath(output).build()) {
             out.writeHeader(in.getFileHeader());
             for (final VariantContext ctx : in) {
                 out.add(ctx);

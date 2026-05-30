@@ -33,7 +33,6 @@ import htsjdk.samtools.util.RuntimeEOFException;
 import htsjdk.samtools.util.StringUtil;
 import htsjdk.tribble.annotation.Strand;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -494,7 +493,7 @@ public final class SAMUtils {
      * header. This hash code changes any time read groups are added or removed. Comparing one file's
      * hash code to another's tells you if the read groups in the BAM files are different.
      */
-    public static String calculateReadGroupRecordChecksum(final File input, final File referenceFasta) {
+    public static String calculateReadGroupRecordChecksum(final Path input, final Path referenceFasta) {
         final String ENCODING = "UTF-8";
 
         final MessageDigest digest;
@@ -505,7 +504,7 @@ public final class SAMUtils {
         }
 
         // Sort the read group records by their first
-        final SamReader reader = SamReaderFactory.makeDefault().referenceSequence(referenceFasta.toPath()).open(input.toPath());
+        final SamReader reader = SamReaderFactory.makeDefault().referenceSequence(referenceFasta).open(input);
         final List<SAMReadGroupRecord> sortedRecords = new ArrayList<>(reader.getFileHeader().getReadGroups());
         Collections.sort(sortedRecords, HEADER_RECORD_COMPARATOR);
 

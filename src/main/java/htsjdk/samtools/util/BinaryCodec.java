@@ -25,7 +25,6 @@ package htsjdk.samtools.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -117,23 +116,13 @@ public class BinaryCodec implements Closeable {
     }
 
     /**
-     * Constructs BinaryCodec from a file and set its mode to writing or not
-     *
-     * @param file    file to be written to or read from
-     * @param writing whether the file is being written to
-     */
-    public BinaryCodec(final File file, final boolean writing) {
-        this(IOUtil.toPath(file), writing);
-    }
-
-    /**
      * Constructs BinaryCodec from a file name and set its mode to writing or not
      *
      * @param fileName name of the file to be written to or read from
      * @param writing  writing whether the file is being written to
      */
     public BinaryCodec(final String fileName, final boolean writing) {
-        this(new File(fileName), writing);
+        this(Path.of(fileName), writing);
     }
 
     /**

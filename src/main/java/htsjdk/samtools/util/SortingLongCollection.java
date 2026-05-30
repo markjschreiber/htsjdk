@@ -26,10 +26,6 @@ package htsjdk.samtools.util;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
@@ -98,16 +94,6 @@ public class SortingLongCollection {
 
     // For disk-based iteration
     private PriorityQueue<PeekFileValueIterator> priorityQueue;
-
-    /**
-     * Prepare to accumulate values to be sorted
-     *
-     * @param maxValuesInRam how many values to accumulate before spilling to disk
-     * @param tmpDir         Where to write files of values that will not fit in RAM
-     */
-    public SortingLongCollection(final int maxValuesInRam, final File... tmpDir) {
-        this(maxValuesInRam, Arrays.stream(tmpDir).map(File::toPath).toArray(Path[]::new));
-    }
 
     /**
      * Prepare to accumulate values to be sorted

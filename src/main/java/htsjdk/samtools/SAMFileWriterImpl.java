@@ -26,8 +26,8 @@ package htsjdk.samtools;
 import htsjdk.samtools.util.ProgressLoggerInterface;
 import htsjdk.samtools.util.SortingCollection;
 
-import java.io.File;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import static htsjdk.samtools.SAMFileHeader.SortOrder;
 
 /**
@@ -43,7 +43,7 @@ public abstract class SAMFileWriterImpl implements SAMFileWriter
     private SAMFileHeader.SortOrder sortOrder;
     private SAMFileHeader header;
     private SortingCollection<SAMRecord> alignmentSorter;
-    private File tmpDir = new File(System.getProperty("java.io.tmpdir"));
+    private Path tmpDir = Path.of(System.getProperty("java.io.tmpdir"));
     private ProgressLoggerInterface progressLogger = null;
     private boolean isClosed = false;
 
@@ -138,13 +138,13 @@ public abstract class SAMFileWriterImpl implements SAMFileWriter
      * for spilling to disk.  Must be called before setHeader().
      * @param tmpDir path to the temporary directory
      */
-    protected void setTempDirectory(final File tmpDir) {
+    protected void setTempDirectory(final Path tmpDir) {
         if (tmpDir!=null) {
             this.tmpDir = tmpDir;
         }
     }
 
-    protected File getTempDirectory() {
+    protected Path getTempDirectory() {
         return tmpDir;
     }
 
