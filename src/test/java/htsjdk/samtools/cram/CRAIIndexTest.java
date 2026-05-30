@@ -146,7 +146,7 @@ public class CRAIIndexTest extends HtsjdkTest {
                 doIndexing(index, fos);
             }
 
-            try (final InputStream is = new SeekableFileStream(file);
+            try (final InputStream is = new SeekableFileStream(file.toPath());
                  final SeekableStream baiStream = CRAIIndex.openCraiFileAsBaiStream(is, dictionary)) {
                 Assert.assertNotNull(baiStream);
                 return baiStream;
@@ -166,7 +166,7 @@ public class CRAIIndexTest extends HtsjdkTest {
                 doIndexing(index, fos);
             }
 
-            try (final SeekableStream baiStream = CRAIIndex.openCraiFileAsBaiStream(file, dictionary)) {
+            try (final SeekableStream baiStream = CRAIIndex.openCraiFileAsBaiStream(file.toPath(), dictionary)) {
                 Assert.assertNotNull(baiStream);
                 return baiStream;
             }

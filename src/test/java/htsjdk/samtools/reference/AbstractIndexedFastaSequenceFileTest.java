@@ -104,16 +104,16 @@ public class AbstractIndexedFastaSequenceFileTest extends HtsjdkTest {
                                                        SEQUENCE_FILE_BGZ) },
                 new Object[] { ReferenceSequenceFileFactory.getReferenceSequenceFile(SEQUENCE_FILE_BGZ),
                                                 new BlockCompressedIndexedFastaSequenceFile(
-                                                        SEQUENCE_FILE_BGZ.toAbsolutePath().toString(), new SeekableFileStream(SEQUENCE_FILE_BGZ.toFile()),
+                                                        SEQUENCE_FILE_BGZ.toAbsolutePath().toString(), new SeekableFileStream(SEQUENCE_FILE_BGZ),
                                                         new FastaSequenceIndex(Files.newInputStream(SEQUENCE_FILE_INDEX)), null,
                                                         gziIndex) },
                 new Object[] { ReferenceSequenceFileFactory.getReferenceSequenceFile(SEQUENCE_FILE.toAbsolutePath().toString(),
-                                                       new SeekableFileStream(SEQUENCE_FILE.toFile()), new FastaSequenceIndex(Files.newInputStream(SEQUENCE_FILE_INDEX))),
-                                               new IndexedFastaSequenceFile(SEQUENCE_FILE.toAbsolutePath().toString(), new SeekableFileStream(SEQUENCE_FILE.toFile()),
+                                                       new SeekableFileStream(SEQUENCE_FILE), new FastaSequenceIndex(Files.newInputStream(SEQUENCE_FILE_INDEX))),
+                                               new IndexedFastaSequenceFile(SEQUENCE_FILE.toAbsolutePath().toString(), new SeekableFileStream(SEQUENCE_FILE),
                                                        new FastaSequenceIndex(Files.newInputStream(SEQUENCE_FILE_INDEX)), null) },
                 new Object[] { ReferenceSequenceFileFactory.getReferenceSequenceFile(SEQUENCE_FILE.toAbsolutePath().toString(),
-                                                       new SeekableFileStream(SEQUENCE_FILE.toFile()), new FastaSequenceIndex(Files.newInputStream(SEQUENCE_FILE_INDEX)), null, true),
-                                               new IndexedFastaSequenceFile(SEQUENCE_FILE.toAbsolutePath().toString(), new SeekableFileStream(SEQUENCE_FILE.toFile()),
+                                                       new SeekableFileStream(SEQUENCE_FILE), new FastaSequenceIndex(Files.newInputStream(SEQUENCE_FILE_INDEX)), null, true),
+                                               new IndexedFastaSequenceFile(SEQUENCE_FILE.toAbsolutePath().toString(), new SeekableFileStream(SEQUENCE_FILE),
                                                        new FastaSequenceIndex(Files.newInputStream(SEQUENCE_FILE_INDEX)), null) },
         };
     }

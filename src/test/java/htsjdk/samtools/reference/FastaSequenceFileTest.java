@@ -99,7 +99,7 @@ public class FastaSequenceFileTest extends HtsjdkTest {
         writer.println(sequence);
         writer.println(sequence + " \t");
         writer.close();
-        try (SeekableStream seekableStream = new SeekableFileStream(fasta.toFile())) {
+        try (SeekableStream seekableStream = new SeekableFileStream(fasta)) {
             final FastaSequenceFile fastaReader = new FastaSequenceFile(fasta.toAbsolutePath().toString(), seekableStream, null, true);
             final ReferenceSequence referenceSequence1 = fastaReader.nextSequence();
             Assert.assertEquals(referenceSequence1.getName(), chr1);

@@ -317,7 +317,7 @@ public class IndexWriterPathMigrationTest extends HtsjdkTest {
         outputIndexPath.toFile().deleteOnExit();
         
         // Use writeIndex static method
-        try (SeekableFileStream cramStream = new SeekableFileStream(CRAM_FILE.toFile());
+        try (SeekableFileStream cramStream = new SeekableFileStream(CRAM_FILE);
              OutputStream indexStream = Files.newOutputStream(outputIndexPath)) {
             CRAMCRAIIndexer.writeIndex(cramStream, indexStream);
         }
@@ -336,7 +336,7 @@ public class IndexWriterPathMigrationTest extends HtsjdkTest {
         outputIndexPath.toFile().deleteOnExit();
         
         // Create index from CRAM file
-        try (SeekableFileStream cramStream = new SeekableFileStream(CRAM_FILE.toFile());
+        try (SeekableFileStream cramStream = new SeekableFileStream(CRAM_FILE);
              OutputStream indexStream = Files.newOutputStream(outputIndexPath)) {
             CRAMCRAIIndexer.writeIndex(cramStream, indexStream);
         }

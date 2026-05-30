@@ -62,7 +62,7 @@ public class TbiEqualityChecker {
         this.tbiFile1 = tbiFile1;
         this.tbiFile2 = tbiFile2;
 
-        this.blockStream = new BlockCompressedInputStream(vcfFile.toFile());
+        this.blockStream = new BlockCompressedInputStream(vcfFile);
     }
 
     private void assertEquals(boolean identical) throws IOException {

@@ -73,7 +73,7 @@ public class LinearIndexTest extends HtsjdkTest {
         chr2.updateLongestFeature(50);
 
         final List<LinearIndex.ChrIndex> indices = Arrays.asList(chr1, chr2);
-        return new LinearIndex(indices, RANDOM_FILE.toFile());
+        return new LinearIndex(indices, RANDOM_FILE);
     }
 
     @Test()
@@ -93,7 +93,7 @@ public class LinearIndexTest extends HtsjdkTest {
         Assert.assertTrue(idx.containsChromosome("chr2"));
         Assert.assertFalse(idx.containsChromosome("chr3"));
 
-        Assert.assertEquals(idx.getIndexedFile(), RANDOM_FILE.toAbsolutePath().toFile());
+        Assert.assertEquals(idx.getIndexedPath(), RANDOM_FILE.toAbsolutePath());
 
         Assert.assertNotNull(idx.getBlocks("chr1"));
         Assert.assertEquals(idx.getBlocks("chr1").size(), 3);

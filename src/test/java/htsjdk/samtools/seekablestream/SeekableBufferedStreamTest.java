@@ -55,7 +55,7 @@ public class SeekableBufferedStreamTest extends HtsjdkTest {
         int length = 50000;
 
         byte[] buffer1 = new byte[length];
-        SeekableStream unBufferedStream = new SeekableFileStream(BAM_FILE);
+        SeekableStream unBufferedStream = new SeekableFileStream(BAM_FILE.toPath());
         unBufferedStream.seek(startPosition);
         int bytesRead = unBufferedStream.read(buffer1, 0, length);
         assertEquals(length, bytesRead);
@@ -114,8 +114,8 @@ public class SeekableBufferedStreamTest extends HtsjdkTest {
         final int[] BUFFER_SIZES = new int[]{8, 96, 1024, 8*1024, 16*1024, 96*1024, 48*1024};
 
         for (final int bufferSize : BUFFER_SIZES) {
-            final SeekableBufferedStream in1 = new SeekableBufferedStream(new SeekableFileStream(BAM_FILE), bufferSize);
-            final SeekableBufferedStream in2 = new SeekableBufferedStream(new SeekableFileStream(BAM_FILE), bufferSize);
+            final SeekableBufferedStream in1 = new SeekableBufferedStream(new SeekableFileStream(BAM_FILE.toPath()), bufferSize);
+            final SeekableBufferedStream in2 = new SeekableBufferedStream(new SeekableFileStream(BAM_FILE.toPath()), bufferSize);
 
             final int SIZE = 10000;
             final byte[] bytes1 = new byte[SIZE];
@@ -147,7 +147,7 @@ public class SeekableBufferedStreamTest extends HtsjdkTest {
 
         class LimitedSeekableFileStream extends SeekableFileStream {
             LimitedSeekableFileStream(File file) throws FileNotFoundException {
-                super(file);
+                super(file.toPath());
             }
             @Override
             public int read(byte[] buffer, int offset, int length) throws IOException {
@@ -161,7 +161,7 @@ public class SeekableBufferedStreamTest extends HtsjdkTest {
                 0, 1, length/2, length, bufferSize/2, bufferSize-1, bufferSize, bufferSize*2};
 
         for (final int seekOffset : RELATIVE_SEEK_OFFSET) {
-            try (SeekableStream unBufferedStream = new SeekableFileStream(BAM_FILE);
+            try (SeekableStream unBufferedStream = new SeekableFileStream(BAM_FILE.toPath());
                  SeekableBufferedStream bufferedStream = new SeekableBufferedStream(new LimitedSeekableFileStream(BAM_FILE), bufferSize)) {
                 byte[] buffer1 = new byte[length];
                 unBufferedStream.seek(startPosition);
@@ -226,7 +226,7 @@ public class SeekableBufferedStreamTest extends HtsjdkTest {
 
         final int BUFFERED_STREAM_BUFFER_SIZE = 100;
         final byte buffer[]=new byte[BUFFERED_STREAM_BUFFER_SIZE*10];
-        final SeekableFileStream fileStream = new SeekableFileStream(TestFile);
+        final SeekableFileStream fileStream = new SeekableFileStream(TestFile.toPath());
         final SeekableBufferedStream  bufferedStream = new SeekableBufferedStream(fileStream,BUFFERED_STREAM_BUFFER_SIZE);
 
         for( int i=0; i<10*BUFFERED_STREAM_BUFFER_SIZE/length ; ++i ){

@@ -98,7 +98,7 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
         }
 
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(cramFile.toFile()),
+                new SeekableFileStream(cramFile),
                 baiFile,
                 referenceSource,
                 ValidationStringency.SILENT)) {
@@ -112,8 +112,8 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
         }
 
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(cramFile.toFile()),
-                new SeekableFileStream(baiFile.toFile()),
+                new SeekableFileStream(cramFile),
+                new SeekableFileStream(baiFile),
                 referenceSource, ValidationStringency.SILENT)) {
             try (final CloseableIterator<SAMRecord> iterator = reader.queryAlignmentStart(
                     TEST_QUERY_ALIGNMENT_CONTIG,
@@ -126,7 +126,7 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
         }
 
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(cramFile.toFile()),
+                new SeekableFileStream(cramFile),
                 (Path)null,
                 referenceSource,
                 ValidationStringency.SILENT)) {
@@ -135,7 +135,7 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
         }
 
         try (final CRAMFileReader reader  = new CRAMFileReader(
-                new SeekableFileStream(cramFile.toFile()),
+                new SeekableFileStream(cramFile),
                 (SeekableFileStream)null,
                 referenceSource,
                 ValidationStringency.SILENT)) {
@@ -327,7 +327,7 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
         final Path baiIndexFile = cramFile.resolveSibling(cramFile.getFileName().toString() + ".bai");
         baiIndexFile.toFile().deleteOnExit();
         // TODO: its silly to use a stream constructor when we have a cram file...
-        CRAMBAIIndexer.createIndex(new SeekableFileStream(cramFile.toFile()), baiIndexFile, null, ValidationStringency.STRICT);
+        CRAMBAIIndexer.createIndex(new SeekableFileStream(cramFile), baiIndexFile, null, ValidationStringency.STRICT);
         return baiIndexFile;
     }
 

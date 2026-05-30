@@ -89,7 +89,7 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
 
     @BeforeClass
     private void createTemporaryDirectory() {
-        tempDir = TestUtil.getTempDirectory("BCFWriter", "StaleIndex").toPath();
+        tempDir = TestUtil.getTempDirectory("BCFWriter", "StaleIndex");
         tempDir.toFile().deleteOnExit();
     }
 

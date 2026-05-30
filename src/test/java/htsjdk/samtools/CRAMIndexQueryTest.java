@@ -109,7 +109,7 @@ public class CRAMIndexQueryTest extends HtsjdkTest {
     {
         Files.copy(inputCRAM.toPath(), outputCRAM.toPath(), StandardCopyOption.REPLACE_EXISTING);
         try (FileOutputStream bos = new FileOutputStream(outputCRAI)) {
-            CRAMCRAIIndexer.writeIndex(new SeekableFileStream(outputCRAM), bos);
+            CRAMCRAIIndexer.writeIndex(new SeekableFileStream(outputCRAM.toPath()), bos);
         }
     }
 

@@ -97,7 +97,7 @@ public class HtsCRAMCodec30And21QueryTest extends HtsjdkTest {
     {
         Files.copy(inputCRAM.toPath(), outputCRAM.toPath(), StandardCopyOption.REPLACE_EXISTING);
         try (final FileOutputStream bos = new FileOutputStream(outputCRAI.toPath().toFile());
-             final SeekableFileStream sfs = new SeekableFileStream(outputCRAM.toPath().toFile())) {
+             final SeekableFileStream sfs = new SeekableFileStream(outputCRAM.toPath())) {
             CRAMCRAIIndexer.writeIndex(sfs, bos);
         }
     }

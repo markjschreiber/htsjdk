@@ -109,7 +109,7 @@ public class VCFIteratorTest extends VariantBaseTest {
 
     @Test(dataProvider = "VcfFiles")
     public void testUsingBGZippedInput(final String filepath, final int nVariants) throws IOException {
-        testUsingZippedInput(filepath, nVariants, (P)-> new BlockCompressedOutputStream(P.toFile()));
+        testUsingZippedInput(filepath, nVariants, (P)-> new BlockCompressedOutputStream(P));
     }
 
     @Test(dataProvider = "VcfFiles")

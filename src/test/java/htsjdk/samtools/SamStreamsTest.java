@@ -87,7 +87,7 @@ public class SamStreamsTest extends HtsjdkTest {
             final boolean expected) throws IOException
     {
         SeekableStream strm = isFile ?
-            new SeekableFileStream(new File(TEST_DATA_DIR, resourceName)) :
+            new SeekableFileStream(new File(TEST_DATA_DIR, resourceName).toPath()) :
             SeekableStreamFactory.getInstance().getStreamFor(new URL(resourceName));
         Assert.assertEquals(SamStreams.sourceLikeCram(strm), expected);
     }
@@ -140,7 +140,7 @@ public class SamStreamsTest extends HtsjdkTest {
             final boolean expected) throws IOException
     {
         SeekableStream strm = isFile ?
-                new SeekableFileStream(new File(TEST_DATA_DIR, resourceName)) :
+                new SeekableFileStream(new File(TEST_DATA_DIR, resourceName).toPath()) :
                 SeekableStreamFactory.getInstance().getStreamFor(new URL(resourceName));
         Assert.assertEquals(SamStreams.sourceLikeBam(strm), expected);
     }

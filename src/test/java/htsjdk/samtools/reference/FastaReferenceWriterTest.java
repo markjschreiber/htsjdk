@@ -667,7 +667,7 @@ public class FastaReferenceWriterTest extends HtsjdkTest {
 
     @Test(dataProvider = "fastaExtensions")
     public void testWriteRandomReference(final String extension) throws IOException {
-        final Path dir = TestUtil.getTempDirectory("SAMRecordSetBuilderTest", "testWriteRandomReference").toPath();
+        final Path dir = TestUtil.getTempDirectory("SAMRecordSetBuilderTest", "testWriteRandomReference");
 
         try {
             final SAMFileHeader header = new SAMFileHeader();

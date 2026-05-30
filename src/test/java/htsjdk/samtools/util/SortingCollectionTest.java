@@ -54,7 +54,7 @@ public class SortingCollectionTest extends HtsjdkTest {
     /** Deletes and re-creates the temporary directory. */
     void resetTmpDir() {
         System.err.println("Resetting tmpdir");
-        IOUtil.deleteDirectoryTree(tmpDir());
+        IOUtil.deleteDirectoryTree(tmpDir().toPath());
         if (!tmpDir().mkdirs()) throw new IllegalStateException("Could not create tmpdir: " + tmpDir().getAbsolutePath());
 
     }
@@ -134,7 +134,7 @@ public class SortingCollectionTest extends HtsjdkTest {
     }
 
     private SortingCollection<String> makeSortingCollection(final int maxRecordsInRam) {
-        return SortingCollection.newInstance(String.class, new StringCodec(), new StringComparator(), maxRecordsInRam, tmpDir());
+        return SortingCollection.newInstance(String.class, new StringCodec(), new StringComparator(), maxRecordsInRam, tmpDir().toPath());
     }
 
     /**

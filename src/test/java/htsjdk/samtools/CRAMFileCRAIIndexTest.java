@@ -66,7 +66,7 @@ public class CRAMFileCRAIIndexTest extends HtsjdkTest {
     @Test
     public void testStreamFileConstructor() throws IOException {
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(tmpCramFile.toFile()),
+                new SeekableFileStream(tmpCramFile),
                 tmpCraiFile,
                 source,
                 ValidationStringency.STRICT);
@@ -81,8 +81,8 @@ public class CRAMFileCRAIIndexTest extends HtsjdkTest {
     @Test
     public void testStreamStreamConstructor() throws IOException {
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(tmpCramFile.toFile()),
-                new SeekableFileStream(tmpCraiFile.toFile()),
+                new SeekableFileStream(tmpCramFile),
+                new SeekableFileStream(tmpCraiFile),
                 source,
                 ValidationStringency.STRICT);
             final CloseableIterator<SAMRecord> iterator = reader.queryAlignmentStart("chrM", 1519)) {
@@ -97,7 +97,7 @@ public class CRAMFileCRAIIndexTest extends HtsjdkTest {
     @Test(expectedExceptions = SAMException.class)
     public void testFileFileConstructorNoIndex () throws IOException {
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(tmpCramFile.toFile()),
+                new SeekableFileStream(tmpCramFile),
                 (Path) null,
                 source,
                 ValidationStringency.STRICT)) {
@@ -108,7 +108,7 @@ public class CRAMFileCRAIIndexTest extends HtsjdkTest {
     @Test(expectedExceptions = SAMException.class)
     public void testStreamStreamConstructorNoIndex() throws IOException {
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(tmpCramFile.toFile()),
+                new SeekableFileStream(tmpCramFile),
                 (SeekableFileStream) null,
                 source,
                 ValidationStringency.STRICT)) {
@@ -193,7 +193,7 @@ public class CRAMFileCRAIIndexTest extends HtsjdkTest {
 
         long[] boundaries = new long[] {0, (Files.size(CRAMFile) - 1) << 16};
         try (final CRAMIterator iterator = new CRAMIterator(
-                new SeekableFileStream(CRAMFile.toFile()),
+                new SeekableFileStream(CRAMFile),
                 refSource,
                 ValidationStringency.STRICT,
                 null,
@@ -340,7 +340,7 @@ public class CRAMFileCRAIIndexTest extends HtsjdkTest {
 
         try (final OutputStream fios = Files.newOutputStream(tmpCraiFile)) {
             Files.write(tmpCramFile, cramBytes);
-            CRAMCRAIIndexer.writeIndex(new SeekableFileStream(tmpCramFile.toFile()), fios);
+            CRAMCRAIIndexer.writeIndex(new SeekableFileStream(tmpCramFile), fios);
         }
         craiBytes = bytesFromPath(tmpCraiFile);
     }

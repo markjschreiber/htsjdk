@@ -170,7 +170,7 @@ public class CRAMCRAIIndexerTest extends HtsjdkTest {
 
     private byte[] fromStream(final Path CRAMFile) throws IOException {
         try (final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             final SeekableStream sfs = new SeekableFileStream(CRAMFile.toFile())) {
+             final SeekableStream sfs = new SeekableFileStream(CRAMFile)) {
 
             CRAMCRAIIndexer.writeIndex(sfs, bos);
             return bos.toByteArray();

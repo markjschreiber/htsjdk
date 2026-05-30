@@ -65,7 +65,7 @@ public class AsyncVariantContextWriterUnitTest extends VariantBaseTest {
 
     @BeforeClass
     private void createTemporaryDirectory() {
-        Path tempDir = TestUtil.getTempDirectory("VCFWriter", "StaleIndex").toPath();
+        Path tempDir = TestUtil.getTempDirectory("VCFWriter", "StaleIndex");
         tempDir.toFile().deleteOnExit();
     }
 

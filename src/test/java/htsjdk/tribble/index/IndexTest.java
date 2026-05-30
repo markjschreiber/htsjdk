@@ -135,6 +135,6 @@ public class IndexTest extends HtsjdkTest {
         // create the index
         final Index index = IndexFactory.createIndex(inputFile, codec, type);
         // try to write based on the tmpFolder
-        Assert.assertThrows(IOException.class, () -> index.writeBasedOnFeatureFile(tmpFolder.toFile()));
+        Assert.assertThrows(IOException.class, () -> index.writeBasedOnFeaturePath(tmpFolder));
     }
 }

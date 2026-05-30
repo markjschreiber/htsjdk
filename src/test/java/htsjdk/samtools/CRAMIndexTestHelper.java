@@ -90,7 +90,7 @@ public class CRAMIndexTestHelper {
 
         // now manually create the CRAI
         try (FileOutputStream bos = new FileOutputStream(temporaryCRAI.toFile())) {
-            CRAMCRAIIndexer.writeIndex(new SeekableFileStream(temporaryCRAM.toFile()), bos);
+            CRAMCRAIIndexer.writeIndex(new SeekableFileStream(temporaryCRAM), bos);
         }
 
         // finally, make sure the contents are actually a CRAI
@@ -122,7 +122,7 @@ public class CRAMIndexTestHelper {
                         .getFileHeader().getSequenceDictionary();
 
         // first, convert the crai to bai and write that out
-        final InputStream is = SamIndexes.openIndexFileAsBaiOrNull(craiFile.toFile(), dictionary);
+        final InputStream is = SamIndexes.openIndexFileAsBaiOrNull(craiFile, dictionary);
         final Path baiOutputFile = Path.of(craiFile.toString() + ".bai");
         baiOutputFile.toFile().deleteOnExit();
         try (final FileOutputStream fos = new FileOutputStream(baiOutputFile.toFile())) {

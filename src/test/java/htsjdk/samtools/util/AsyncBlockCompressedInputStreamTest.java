@@ -37,7 +37,7 @@ public class AsyncBlockCompressedInputStreamTest extends HtsjdkTest {
     private final File BAM_FILE = new File("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
     @Test
     public void testAsync() throws Exception {
-    	BlockCompressedInputStream sync = new BlockCompressedInputStream(new SeekableFileStream(BAM_FILE));
+    	BlockCompressedInputStream sync = new BlockCompressedInputStream(new SeekableFileStream(BAM_FILE.toPath()));
     	List<byte[]> expected = new ArrayList<>();
     	List<Long> virtualOffset = new ArrayList<>();
     	List<Integer> length = new ArrayList<>();
@@ -56,7 +56,7 @@ public class AsyncBlockCompressedInputStreamTest extends HtsjdkTest {
     	buffer = new byte[buffer.length];
     	List<BlockCompressedInputStream> list = new ArrayList<>();
     	for (int i = 0; i < 8; i++) {
-    		list.add(new AsyncBlockCompressedInputStream(new SeekableFileStream(BAM_FILE)));
+    		list.add(new AsyncBlockCompressedInputStream(new SeekableFileStream(BAM_FILE.toPath())));
     	}
     	// read till EOF
     	for (int i = 0; i < expected.size(); i++) {
@@ -85,7 +85,7 @@ public class AsyncBlockCompressedInputStreamTest extends HtsjdkTest {
     }
     @Test
     public void testFilePointer() throws Exception {    	
-    	BlockCompressedInputStream sync = new BlockCompressedInputStream(BAM_FILE);
+    	BlockCompressedInputStream sync = new BlockCompressedInputStream(BAM_FILE.toPath());
     	Assert.assertEquals(sync.getFilePointer(), 0);
     	sync.close();
     }

@@ -12,6 +12,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -26,7 +27,7 @@ public class IntervalFilterTest extends HtsjdkTest {
         final SAMFileHeader fileHeader;
         final IntervalList list;
 
-        fileHeader = IntervalList.fromFile(new File("src/test/resources/htsjdk/samtools/intervallist/IntervalListchr123_empty.interval_list")).getHeader();
+        fileHeader = IntervalList.fromPath(Path.of("src/test/resources/htsjdk/samtools/intervallist/IntervalListchr123_empty.interval_list")).getHeader();
         fileHeader.setSortOrder(SAMFileHeader.SortOrder.unsorted);
 
         list = new IntervalList(fileHeader);

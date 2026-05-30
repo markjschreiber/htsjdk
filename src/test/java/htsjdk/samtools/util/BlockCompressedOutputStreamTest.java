@@ -50,7 +50,7 @@ public class BlockCompressedOutputStreamTest extends HtsjdkTest {
         f.deleteOnExit();
         final List<String> linesWritten = new ArrayList<>();
         System.out.println("Creating file " + f);
-        final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(f);
+        final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(f.toPath());
         String s = "Hi, Mom!\n";
         bcos.write(s.getBytes());
         linesWritten.add(s);
@@ -66,14 +66,14 @@ public class BlockCompressedOutputStreamTest extends HtsjdkTest {
         }
         bcos.write(sb.toString().getBytes());
         bcos.close();
-        final BlockCompressedInputStream bcis = new BlockCompressedInputStream(f);
+        final BlockCompressedInputStream bcis = new BlockCompressedInputStream(f.toPath());
         final BufferedReader reader = new BufferedReader(new InputStreamReader(bcis));
         String line;
         for(int i = 0; (line = reader.readLine()) != null; ++i) {
             Assert.assertEquals(line + "\n", linesWritten.get(i));
         }
         bcis.close();
-        final BlockCompressedInputStream bcis2 = new BlockCompressedInputStream(f);
+        final BlockCompressedInputStream bcis2 = new BlockCompressedInputStream(f.toPath());
         int available = bcis2.available();
         Assert.assertFalse(bcis2.endOfBlock(), "Should not be at end of block");
         Assert.assertTrue(available > 0);
@@ -92,7 +92,7 @@ public class BlockCompressedOutputStreamTest extends HtsjdkTest {
         final byte[] bs = s.getBytes();
         final int iterations = BlockCompressedStreamConstants.DEFAULT_UNCOMPRESSED_BLOCK_SIZE * 2 / bs.length;
 
-        final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(f);
+        final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(f.toPath());
         for (int i=0; i<iterations; ++i) {
             for (final byte b : bs) {
                 bcos.write(b);
@@ -107,7 +107,7 @@ public class BlockCompressedOutputStreamTest extends HtsjdkTest {
         bcos.close(false);
 
         final List<String> lines = new ArrayList<>();
-        IOUtil.readLines(f).forEachRemaining(lines::add);
+        IOUtil.readLines(f.toPath()).forEachRemaining(lines::add);
 
         Assert.assertEquals(lines.size(), iterations * 2);
         for (final String line : lines) {
@@ -140,7 +140,7 @@ public class BlockCompressedOutputStreamTest extends HtsjdkTest {
                                        final int pos) throws Exception {
 
         final BlockCompressedInputStream bcis = isFile ?
-                new BlockCompressedInputStream(new File(filePath)) :
+                new BlockCompressedInputStream(new File(filePath).toPath()) :
                 new BlockCompressedInputStream(new FileInputStream(filePath));
 
         if ( isClosed ) {
@@ -171,7 +171,7 @@ public class BlockCompressedOutputStreamTest extends HtsjdkTest {
         final File f = File.createTempFile("BCOST.", ".gz");
         f.deleteOnExit();
         System.out.println("Creating file " + f);
-        final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(f);
+        final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(f.toPath());
         Random r = new Random(15555);
         final int INPUT_SIZE = 64 * 1024;
         byte[] input = new byte[INPUT_SIZE];
@@ -179,7 +179,7 @@ public class BlockCompressedOutputStreamTest extends HtsjdkTest {
         bcos.write(input);
         bcos.close();
 
-        final BlockCompressedInputStream bcis = new BlockCompressedInputStream(f);
+        final BlockCompressedInputStream bcis = new BlockCompressedInputStream(f.toPath());
         byte[] output = new byte[INPUT_SIZE];
         int len;
         int i = 0;
@@ -227,7 +227,7 @@ public class BlockCompressedOutputStreamTest extends HtsjdkTest {
             }
         };
         final List<String> linesWritten = new ArrayList<>();
-        final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(f, 5, myDeflaterFactory);
+        final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(f.toPath(), 5, myDeflaterFactory);
         String s = "Hi, Mom!\n";
         bcos.write(s.getBytes()); //Call 1
         linesWritten.add(s);
@@ -243,7 +243,7 @@ public class BlockCompressedOutputStreamTest extends HtsjdkTest {
         }
         bcos.write(sb.toString().getBytes()); //Call 3
         bcos.close();
-        final BlockCompressedInputStream bcis = new BlockCompressedInputStream(f);
+        final BlockCompressedInputStream bcis = new BlockCompressedInputStream(f.toPath());
         final BufferedReader reader = new BufferedReader(new InputStreamReader(bcis));
         String line;
         for(int i = 0; (line = reader.readLine()) != null; ++i) {

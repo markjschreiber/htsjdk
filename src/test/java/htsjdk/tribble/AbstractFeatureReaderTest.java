@@ -85,7 +85,7 @@ public class AbstractFeatureReaderTest extends HtsjdkTest {
 
     @Test(dataProvider = "blockCompressedExtensionExtensionStrings", dataProviderClass = IOUtilTest.class)
     public void testBlockCompressionExtensionFile(final String testString, final boolean expected) {
-        Assert.assertEquals(AbstractFeatureReader.hasBlockCompressedExtension(Path.of(testString).toFile()), expected);
+        Assert.assertEquals(AbstractFeatureReader.hasBlockCompressedExtension(Path.of(testString)), expected);
     }
 
     @Test(dataProvider = "blockCompressedExtensionExtensionURIStrings", dataProviderClass = IOUtilTest.class)

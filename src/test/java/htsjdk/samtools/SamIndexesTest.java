@@ -128,7 +128,7 @@ public class SamIndexesTest extends HtsjdkTest {
         final SAMSequenceDictionary dictionary = new SAMSequenceDictionary();
         dictionary.addSequence(new SAMSequenceRecord("1", 100));
 
-        final SeekableStream baiStream = SamIndexes.asBaiSeekableStreamOrNull(new SeekableFileStream(file), dictionary);
+        final SeekableStream baiStream = SamIndexes.asBaiSeekableStreamOrNull(new SeekableFileStream(file.toPath()), dictionary);
         Assert.assertNotNull(baiStream);
 
         final CachingBAMFileIndex bamIndex = new CachingBAMFileIndex(baiStream, dictionary);
@@ -153,12 +153,12 @@ public class SamIndexesTest extends HtsjdkTest {
         dictionary.addSequence(new SAMSequenceRecord("1", 100));
         File file = File.createTempFile("test", ".notbai");
         file.deleteOnExit();
-        Assert.assertNull(SamIndexes.openIndexFileAsBaiOrNull(file, dictionary));
+        Assert.assertNull(SamIndexes.openIndexFileAsBaiOrNull(file.toPath(), dictionary));
         file.delete();
 
         file = File.createTempFile("test", ".notcrai");
         file.deleteOnExit();
-        Assert.assertNull(SamIndexes.openIndexFileAsBaiOrNull(file, dictionary));
+        Assert.assertNull(SamIndexes.openIndexFileAsBaiOrNull(file.toPath(), dictionary));
         file.delete();
     }
 

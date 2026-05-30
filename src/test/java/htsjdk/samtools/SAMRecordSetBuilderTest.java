@@ -26,7 +26,7 @@ public class SAMRecordSetBuilderTest extends HtsjdkTest {
                 50000);
 
 
-        final Path dir = TestUtil.getTempDirectory("SAMRecordSetBuilderTest", "testWriteRandomReference").toPath();
+        final Path dir = TestUtil.getTempDirectory("SAMRecordSetBuilderTest", "testWriteRandomReference");
         final Path fasta = dir.resolve( "output.fa");
         final Path dict = dir.resolve(  "output.dict");
 
@@ -37,8 +37,8 @@ public class SAMRecordSetBuilderTest extends HtsjdkTest {
 
     @Test
     public void testDeterministicWriteRandomReference() throws IOException {
-        final Path dir1 = TestUtil.getTempDirectory("SAMRecordSetBuilderTest", "testWriteRandomReference").toPath();
-        final Path dir2 = TestUtil.getTempDirectory("SAMRecordSetBuilderTest", "testWriteRandomReference").toPath();
+        final Path dir1 = TestUtil.getTempDirectory("SAMRecordSetBuilderTest", "testWriteRandomReference");
+        final Path dir2 = TestUtil.getTempDirectory("SAMRecordSetBuilderTest", "testWriteRandomReference");
 
         try {
             for (final Path dir : CollectionUtil.makeSet(dir1, dir2)) {

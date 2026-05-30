@@ -581,7 +581,7 @@ public class SamReaderFactoryTest extends HtsjdkTest {
         final SamReaderFactory factory = SamReaderFactory.makeDefault()
                 .validationStringency(ValidationStringency.SILENT);
         final SamReader reader = factory.open(
-                SamInputResource.of(new SeekableFileStream(samPath.toFile())));
+                SamInputResource.of(new SeekableFileStream(samPath)));
         Assert.assertEquals(countRecords(reader), 10);
     }
 
@@ -605,7 +605,7 @@ public class SamReaderFactoryTest extends HtsjdkTest {
         final SamReaderFactory factory = SamReaderFactory.makeDefault()
                 .validationStringency(ValidationStringency.SILENT);
         try (final SamReader reader = factory.open(
-                SamInputResource.of(new SeekableFileStream(samPath.toFile())))) {
+                SamInputResource.of(new SeekableFileStream(samPath)))) {
             countRecords(reader);
         }
     }

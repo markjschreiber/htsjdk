@@ -268,7 +268,7 @@ public class SAMRecordDuplicateComparatorTest extends HtsjdkTest {
 
         // Validate that the results are sorted
         final SAMSortOrderChecker sortChecker = new SAMSortOrderChecker(SAMFileHeader.SortOrder.duplicate);
-        final SamReader r = SamReaderFactory.makeDefault().referenceSequence(Defaults.REFERENCE_FASTA.toPath()).open(sortedBam);
+        final SamReader r = SamReaderFactory.makeDefault().referenceSequence(Defaults.REFERENCE_FASTA).open(sortedBam);
 
         for(final SAMRecord rec : r) {
             Assert.assertTrue(sortChecker.isSorted(rec), "Simulated read with name: " + rec.getReadName() + " is not in duplicate sort order.");

@@ -29,8 +29,8 @@ public class VCFFileReaderTest extends HtsjdkTest {
         List<Object[]> tests = new ArrayList<>();
         tests.add(new Object[]{TEST_DATA_DIR.resolve("NA12891.fp.vcf"), false});
         tests.add(new Object[]{TEST_DATA_DIR.resolve("NA12891.vcf"), false});
-        tests.add(new Object[]{VCFUtils.createTemporaryIndexedVcfFromInput(TEST_DATA_DIR.resolve("NA12891.vcf").toFile(), "fingerprintcheckertest.tmp.").toPath(), true});
-        tests.add(new Object[]{VCFUtils.createTemporaryIndexedVcfFromInput(TEST_DATA_DIR.resolve("NA12891.vcf.gz").toFile(), "fingerprintcheckertest.tmp.").toPath(), true});
+        tests.add(new Object[]{VCFUtils.createTemporaryIndexedVcfFromInput(TEST_DATA_DIR.resolve("NA12891.vcf"), "fingerprintcheckertest.tmp."), true});
+        tests.add(new Object[]{VCFUtils.createTemporaryIndexedVcfFromInput(TEST_DATA_DIR.resolve("NA12891.vcf.gz"), "fingerprintcheckertest.tmp."), true});
 
         return tests.iterator();
     }

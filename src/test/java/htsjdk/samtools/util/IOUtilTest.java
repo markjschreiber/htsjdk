@@ -121,12 +121,12 @@ public class IOUtilTest extends HtsjdkTest {
             File f = File.createTempFile(TEST_FILE_PREFIX, ext);
             f.deleteOnExit();
 
-            OutputStream os = IOUtil.openFileForWriting(f);
+            OutputStream os = IOUtil.openFileForWriting(f.toPath());
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os));
             writer.write(randomizedTestString);
             writer.close();
 
-            InputStream is = IOUtil.openFileForReading(f);
+            InputStream is = IOUtil.openFileForReading(f.toPath());
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             String line = reader.readLine();
             Assert.assertEquals(randomizedTestString, line);
@@ -161,7 +161,7 @@ public class IOUtilTest extends HtsjdkTest {
 
         File[] files = {actual, symlink, lnToActual, lnToSymlink};
         for (File f : files) {
-            Assert.assertEquals(IOUtil.getFullCanonicalPath(f), actual.getCanonicalPath());
+            Assert.assertEquals(IOUtil.getFullCanonicalPath(f.toPath()), actual.getCanonicalPath());
         }
     }
 
@@ -172,11 +172,11 @@ public class IOUtilTest extends HtsjdkTest {
             final File f = File.createTempFile(TEST_FILE_PREFIX, ext);
             f.deleteOnExit();
 
-            final BufferedWriter writer = IOUtil.openFileForBufferedUtf8Writing(f);
+            final BufferedWriter writer = IOUtil.openFileForBufferedUtf8Writing(f.toPath());
             writer.write(utf8);
             CloserUtil.close(writer);
 
-            final BufferedReader reader = IOUtil.openFileForBufferedUtf8Reading(f);
+            final BufferedReader reader = IOUtil.openFileForBufferedUtf8Reading(f.toPath());
             final String line = reader.readLine();
             Assert.assertEquals(utf8, line, f.getAbsolutePath());
 
@@ -187,35 +187,35 @@ public class IOUtilTest extends HtsjdkTest {
 
     @Test
     public void slurpLinesTest() throws FileNotFoundException {
-        Assert.assertEquals(IOUtil.slurpLines(SLURP_TEST_FILE.toFile()), SLURP_TEST_LINES);
+        Assert.assertEquals(IOUtil.slurpLines(SLURP_TEST_FILE), SLURP_TEST_LINES);
     }
 
     @Test
     public void slurpWhitespaceOnlyFileTest() throws FileNotFoundException {
-        Assert.assertEquals(IOUtil.slurp(FIVE_SPACES_THEN_A_NEWLINE_THEN_FIVE_SPACES_FILE.toFile()), "     \n     ");
+        Assert.assertEquals(IOUtil.slurp(FIVE_SPACES_THEN_A_NEWLINE_THEN_FIVE_SPACES_FILE), "     \n     ");
     }
 
     @Test
     public void slurpEmptyFileTest() throws FileNotFoundException {
-        Assert.assertEquals(IOUtil.slurp(EMPTY_FILE.toFile()), "");
+        Assert.assertEquals(IOUtil.slurp(EMPTY_FILE), "");
     }
 
     @Test
     public void slurpTest() throws FileNotFoundException {
-        Assert.assertEquals(IOUtil.slurp(SLURP_TEST_FILE.toFile()), CollectionUtil.join(SLURP_TEST_LINES, SLURP_TEST_LINE_SEPARATOR));
+        Assert.assertEquals(IOUtil.slurp(SLURP_TEST_FILE), CollectionUtil.join(SLURP_TEST_LINES, SLURP_TEST_LINE_SEPARATOR));
     }
 
     @Test(dataProvider = "fileTypeTestCases")
     public void testFileType(final String path, boolean expectedIsRegularFile) {
         final File file = new File(path);
-        Assert.assertEquals(IOUtil.isRegularPath(file), expectedIsRegularFile);
+        Assert.assertEquals(IOUtil.isRegularPath(file.toPath()), expectedIsRegularFile);
         Assert.assertEquals(IOUtil.isRegularPath(file.toPath()), expectedIsRegularFile);
     }
 
     @Test(dataProvider = "unixFileTypeTestCases", groups = {"unix"})
     public void testFileTypeUnix(final String path, boolean expectedIsRegularFile) {
         final File file = new File(path);
-        Assert.assertEquals(IOUtil.isRegularPath(file), expectedIsRegularFile);
+        Assert.assertEquals(IOUtil.isRegularPath(file.toPath()), expectedIsRegularFile);
         Assert.assertEquals(IOUtil.isRegularPath(file.toPath()), expectedIsRegularFile);
     }
 
@@ -285,7 +285,7 @@ public class IOUtilTest extends HtsjdkTest {
 
     @Test(dataProvider = "getFiles")
     public void testToPath(final File file, final Path expected){
-        Assert.assertEquals(IOUtil.toPath(file), expected);
+        Assert.assertEquals(file == null ? null : file.toPath(), expected);
     }
 
 
@@ -442,7 +442,7 @@ public class IOUtilTest extends HtsjdkTest {
     @Test(dataProvider = "filesForWritableDirectory")
     public void testAssertDirectoryIsWritableFile(final File file, final boolean writable) {
         try {
-            IOUtil.assertDirectoryIsWritable(file);
+            IOUtil.assertDirectoryIsWritable(file.toPath());
         } catch (SAMException e) {
             if (writable) {
                 Assert.fail(e.getMessage());
@@ -504,7 +504,7 @@ public class IOUtilTest extends HtsjdkTest {
 
     @Test(dataProvider = "blockCompressedExtensionExtensionStrings")
     public void testBlockCompressionExtensionFile(final String testString, final boolean expected) {
-        Assert.assertEquals(IOUtil.hasBlockCompressedExtension(new File(testString)), expected);
+        Assert.assertEquals(IOUtil.hasBlockCompressedExtension(new File(testString).toPath()), expected);
     }
 
     @DataProvider(name = "blockCompressedExtensionExtensionURIStrings")
@@ -598,7 +598,7 @@ public class IOUtilTest extends HtsjdkTest {
             IOUtil.setCompressionLevel(compressionLevel);
             Assert.assertEquals(IOUtil.getCompressionLevel(), compressionLevel);
             final InputStream inStream = IOUtil.openFileForReading(file);
-            try (final OutputStream outStream = IOUtil.openFileForWriting(outFile.toFile())) {
+            try (final OutputStream outStream = IOUtil.openFileForWriting(outFile)) {
                 IOUtil.transferByStream(inStream, outStream, origSize);
             }
             final long newSize = Files.size(outFile);
@@ -663,7 +663,7 @@ public class IOUtilTest extends HtsjdkTest {
     public void testCopyFile(final Path file) throws IOException {
         final Path outFile = Files.createTempFile("tmp", ".tmp");
         outFile.toFile().deleteOnExit();
-        IOUtil.copyFile(file.toFile(), outFile.toFile());
+        IOUtil.copyPath(file, outFile);
         Assert.assertEquals(Files.lines(file).collect(Collectors.toList()), Files.lines(outFile).collect(Collectors.toList()));
     }
 
@@ -673,7 +673,7 @@ public class IOUtilTest extends HtsjdkTest {
         outFile.toFile().deleteOnExit();
         file.toFile().setReadable(false);
         try {
-            IOUtil.copyFile(file.toFile(), outFile.toFile());
+            IOUtil.copyPath(file, outFile);
         } finally { //need to set input file permission back to readable so other unit tests can access it
             file.toFile().setReadable(true);
         }
@@ -690,7 +690,7 @@ public class IOUtilTest extends HtsjdkTest {
         final Path outFile = Files.createTempFile("tmp", ".tmp");
         outFile.toFile().deleteOnExit();
         outFile.toFile().setWritable(false);
-        IOUtil.copyFile(file.toFile(), outFile.toFile());
+        IOUtil.copyPath(file, outFile);
     }
 
     @DataProvider
@@ -706,7 +706,7 @@ public class IOUtilTest extends HtsjdkTest {
 
     @Test(dataProvider = "baseNameTests")
     public void testBasename(final Path file, final String expected) {
-        final String result = IOUtil.basename(file.toFile());
+        final String result = IOUtil.basename(file);
         Assert.assertEquals(result, expected);
     }
 
@@ -725,17 +725,17 @@ public class IOUtilTest extends HtsjdkTest {
         final Path regExpDir = Files.createTempDirectory("regExpDir");
         regExpDir.toFile().deleteOnExit();
         final List<String> listExpected = Arrays.asList(expected);
-        final List<File> expectedFiles = new ArrayList<File>();
+        final List<Path> expectedFiles = new ArrayList<Path>();
         for (String name : allNames) {
             final Path file = regExpDir.resolve(name);
             file.toFile().deleteOnExit();
             file.toFile().createNewFile();
             if (listExpected.contains(name)) {
-                expectedFiles.add(file.toFile());
+                expectedFiles.add(file);
             }
         }
-        final File[] result = IOUtil.getFilesMatchingRegexp(regExpDir.toFile(), regexp);
-        Assert.assertEqualsNoOrder(result, expectedFiles.toArray());
+        final List<Path> result = IOUtil.getPathsMatchingRegexp(regExpDir, regexp);
+        Assert.assertEqualsNoOrder(result.toArray(), expectedFiles.toArray());
     }
 
     @Test()
@@ -754,7 +754,7 @@ public class IOUtilTest extends HtsjdkTest {
             }
         }
         final List<String> retLines = new ArrayList<String>();
-        IOUtil.readLines(file.toFile()).forEachRemaining(retLines::add);
+        IOUtil.readLines(file).forEachRemaining(retLines::add);
         Assert.assertEquals(retLines, lines);
     }
 
@@ -769,7 +769,7 @@ public class IOUtilTest extends HtsjdkTest {
 
     @Test(dataProvider = "fileSuffixTests")
     public void testSuffixTest(final Path file, final String expected) {
-        final String ret = IOUtil.fileSuffix(file.toFile());
+        final String ret = IOUtil.fileSuffix(file);
         Assert.assertEquals(ret, expected);
     }
 
@@ -777,7 +777,7 @@ public class IOUtilTest extends HtsjdkTest {
     public void testCopyDirectoryTree() throws IOException {
         final Path copyToDir = Files.createTempDirectory("copyToDir");
         copyToDir.toFile().deleteOnExit();
-        IOUtil.copyDirectoryTree(TEST_VARIANT_DIR.toFile(), copyToDir.toFile());
+        IOUtil.copyDirectoryTree(TEST_VARIANT_DIR, copyToDir);
         final List<Path> collect = Files.walk(TEST_VARIANT_DIR).filter(f -> !f.equals(TEST_VARIANT_DIR)).map(p -> p.getFileName()).collect(Collectors.toList());
         final List<Path> collectCopy = Files.walk(copyToDir).filter(f -> !f.equals(copyToDir)).map(p -> p.getFileName()).collect(Collectors.toList());
         Assert.assertEqualsNoOrder(collect.toArray(), collectCopy.toArray());
@@ -915,32 +915,20 @@ public class IOUtilTest extends HtsjdkTest {
     public void testNoFileBasedMethodsExist() throws Exception {
         // Use reflection to verify no public methods accept or return File
         java.lang.reflect.Method[] methods = IOUtil.class.getMethods();
-        int deprecatedFileMethodCount = 0;
         
         for (java.lang.reflect.Method method : methods) {
-            // Check if method is deprecated
-            boolean isDeprecated = method.isAnnotationPresent(Deprecated.class);
-            
-            // Check parameters
+            // Check parameters - no method should accept File (deprecated or not)
             for (Class<?> paramType : method.getParameterTypes()) {
                 if (paramType.equals(File.class)) {
-                    Assert.assertTrue(isDeprecated, 
-                        "Non-deprecated method " + method.getName() + " has File parameter");
-                    deprecatedFileMethodCount++;
+                    Assert.fail("Method " + method.getName() + " has File parameter - all File-based methods should be removed");
                 }
             }
             
-            // Check return type
+            // Check return type - no method should return File
             if (method.getReturnType().equals(File.class)) {
-                Assert.assertTrue(isDeprecated, 
-                    "Non-deprecated method " + method.getName() + " returns File");
-                deprecatedFileMethodCount++;
+                Assert.fail("Method " + method.getName() + " returns File - all File-based methods should be removed");
             }
         }
-        
-        // Verify that we found some deprecated File-based methods (for backward compatibility)
-        Assert.assertTrue(deprecatedFileMethodCount > 0, 
-            "Expected to find deprecated File-based methods for backward compatibility");
     }
 
     @Test
@@ -1362,38 +1350,24 @@ public class IOUtilTest extends HtsjdkTest {
     }
 
     /**
-     * Test that deprecated File-based methods exist for backward compatibility.
-     * Validates: Requirement 1.5
+     * Test that all File-based methods have been removed from IOUtil.
+     * Validates: Requirement 1.5 - IOUtil SHALL NOT contain any File-based method signatures
      */
     @Test
     public void testDeprecatedFileMethodsExistForBackwardCompatibility() {
         java.lang.reflect.Method[] methods = IOUtil.class.getMethods();
-        int deprecatedFileMethodCount = 0;
         
         for (java.lang.reflect.Method method : methods) {
-            if (!method.isAnnotationPresent(Deprecated.class)) {
-                continue;
-            }
-            
-            // Check if this deprecated method uses File
-            boolean usesFile = false;
+            // No method should accept or return File (deprecated or not)
             for (Class<?> paramType : method.getParameterTypes()) {
                 if (paramType.equals(File.class)) {
-                    usesFile = true;
-                    break;
+                    Assert.fail("Method " + method.getName() + " still has File parameter - migration incomplete");
                 }
             }
             if (method.getReturnType().equals(File.class)) {
-                usesFile = true;
-            }
-            
-            if (usesFile) {
-                deprecatedFileMethodCount++;
+                Assert.fail("Method " + method.getName() + " still returns File - migration incomplete");
             }
         }
-        
-        Assert.assertTrue(deprecatedFileMethodCount > 0, 
-            "Expected to find deprecated File-based methods for backward compatibility");
     }
 
     /**

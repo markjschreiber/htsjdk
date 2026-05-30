@@ -78,7 +78,7 @@ public class VCFHeaderUnitTest extends VariantBaseTest {
 
     @BeforeClass
     private void createTemporaryDirectory() {
-        tempDir = TestUtil.getTempDirectory("VCFHeader", "VCFHeaderTest");
+        tempDir = TestUtil.getTempDirectory("VCFHeader", "VCFHeaderTest").toFile();
     }
 
     @AfterClass

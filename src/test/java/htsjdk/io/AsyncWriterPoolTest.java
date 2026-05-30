@@ -92,7 +92,7 @@ public class AsyncWriterPoolTest extends HtsjdkTest {
             // Verify that values wrote in order and in full
             for (int i = 0; i < fileNum; i++) {
                 File file = files.get(i);
-                List<Integer> lines = IOUtil.slurpLines(file).stream().map(Integer::parseInt).collect(Collectors.toList());
+                List<Integer> lines = IOUtil.slurpLines(file.toPath()).stream().map(Integer::parseInt).collect(Collectors.toList());
                 Assert.assertTrue(AsyncWriterPoolTest.isSorted(lines));
                 Assert.assertEquals(lines.size(), 100);
             }

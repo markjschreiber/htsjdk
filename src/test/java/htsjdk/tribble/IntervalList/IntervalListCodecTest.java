@@ -92,7 +92,7 @@ public class IntervalListCodecTest extends HtsjdkTest {
     public void testTribbleDecodeCompressed(final Path file) throws IOException {
         // compress 'file' to bgzf
         Path tmpGz = Files.createTempFile("htsjdk.", FileExtensions.COMPRESSED_INTERVAL_LIST);
-        try(BlockCompressedOutputStream bgz = new BlockCompressedOutputStream(tmpGz.toFile());
+        try(BlockCompressedOutputStream bgz = new BlockCompressedOutputStream(tmpGz);
             InputStream fis = Files.newInputStream(file)) {
             IOUtil.copyStream(fis,bgz);
             bgz.flush();

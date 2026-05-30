@@ -26,7 +26,7 @@ public class VCFHeaderReaderTest extends HtsjdkTest {
 
     @Test(dataProvider = "files")
     public void testReadHeaderFrom(final String file) throws IOException {
-        VCFHeader vcfHeader = VCFHeaderReader.readHeaderFrom(new SeekableFileStream(Path.of(file).toFile()));
+        VCFHeader vcfHeader = VCFHeaderReader.readHeaderFrom(new SeekableFileStream(Path.of(file)));
         Assert.assertNotNull(vcfHeader);
     }
 
@@ -40,6 +40,6 @@ public class VCFHeaderReaderTest extends HtsjdkTest {
 
     @Test(dataProvider = "invalidFiles", expectedExceptions = TribbleException.InvalidHeader.class)
     public void testReadHeaderForInvalidFile(Path path) throws IOException {
-        VCFHeaderReader.readHeaderFrom(new SeekableFileStream(path.toFile()));
+        VCFHeaderReader.readHeaderFrom(new SeekableFileStream(path));
     }
 }

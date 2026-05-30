@@ -66,7 +66,7 @@ public class BAMIndexWriterTest extends HtsjdkTest {
         BAMIndexer.createAndWriteIndex(javaBaiFile.toPath(), javaBaiTxtFile.toPath(), true);
         // and compare them
         verbose("diff " + javaBaiTxtFile + " " + cBaiTxtFile);
-        IOUtil.assertFilesEqual(javaBaiTxtFile, cBaiTxtFile);
+        IOUtil.assertFilesEqual(javaBaiTxtFile.toPath(), cBaiTxtFile.toPath());
         cBaiTxtFile.deleteOnExit();
         javaBaiFile.deleteOnExit();
         javaBaiTxtFile.deleteOnExit();
@@ -87,7 +87,7 @@ public class BAMIndexWriterTest extends HtsjdkTest {
 
         // Binary compare of javaBaiFile and cRegeneratedBaiFile should be the same
         verbose("diff " + javaBaiFile + " " + cRegeneratedBaiFile);
-        IOUtil.assertFilesEqual(javaBaiFile, cRegeneratedBaiFile);
+        IOUtil.assertFilesEqual(javaBaiFile.toPath(), cRegeneratedBaiFile.toPath());
         javaBaiFile.deleteOnExit();
         cRegeneratedBaiFile.deleteOnExit();
         CloserUtil.close(bam);

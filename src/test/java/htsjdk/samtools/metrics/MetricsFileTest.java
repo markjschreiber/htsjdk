@@ -188,13 +188,13 @@ public class MetricsFileTest extends HtsjdkTest {
         final File fileModifiedHist = new File(TEST_DIR,"metricsOneModifiedHistogram.metrics");
         final File fileModifiedMet = new File(TEST_DIR,"metricsOneModifiedMetrics.metrics");
 
-        Assert.assertTrue(MetricsFile.areMetricsEqual(file1, file2));
-        Assert.assertTrue(MetricsFile.areMetricsEqual(file1, file3));
-        Assert.assertTrue(MetricsFile.areMetricsEqual(file1, fileModifiedHist));
+        Assert.assertTrue(MetricsFile.areMetricsEqual(file1.toPath(), file2.toPath()));
+        Assert.assertTrue(MetricsFile.areMetricsEqual(file1.toPath(), file3.toPath()));
+        Assert.assertTrue(MetricsFile.areMetricsEqual(file1.toPath(), fileModifiedHist.toPath()));
 
-        Assert.assertFalse(MetricsFile.areMetricsAndHistogramsEqual(file1, fileModifiedHist));
-        Assert.assertFalse(MetricsFile.areMetricsEqual(file1, fileModifiedMet));
-        Assert.assertFalse(MetricsFile.areMetricsAndHistogramsEqual(file1, fileModifiedMet));
+        Assert.assertFalse(MetricsFile.areMetricsAndHistogramsEqual(file1.toPath(), fileModifiedHist.toPath()));
+        Assert.assertFalse(MetricsFile.areMetricsEqual(file1.toPath(), fileModifiedMet.toPath()));
+        Assert.assertFalse(MetricsFile.areMetricsAndHistogramsEqual(file1.toPath(), fileModifiedMet.toPath()));
     }
 
     /** Helper method to persist metrics to file and read them back again. */

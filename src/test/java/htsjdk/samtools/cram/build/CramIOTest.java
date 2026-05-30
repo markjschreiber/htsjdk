@@ -87,7 +87,7 @@ public class CramIOTest extends HtsjdkTest {
      * @return true if the file is a valid CRAM file and is properly terminated with respect to the version.
      */
     private static boolean checkHeaderAndEOF(final File file) {
-        try (final SeekableStream seekableStream = new SeekableFileStream(file)) {
+        try (final SeekableStream seekableStream = new SeekableFileStream(file.toPath())) {
             final CramHeader cramHeader = readCramHeader(seekableStream);
             return checkEOF(cramHeader.getCRAMVersion(), seekableStream);
         } catch (final IOException e) {

@@ -34,7 +34,7 @@ public class FeatureReaderTest extends HtsjdkTest {
     public void setup() throws IOException {
         binaryBedFile = Files.createTempFile("htsjdk-test.featurereader", ".bed");
         binaryBedFile.toFile().deleteOnExit();
-        ExampleBinaryCodec.convertToBinaryTest(asciiBedFile.toFile(), binaryBedFile.toFile(), new BEDCodec());
+        ExampleBinaryCodec.convertToBinaryTest(asciiBedFile, binaryBedFile, new BEDCodec());
     }
 
     @AfterClass
@@ -146,7 +146,7 @@ public class FeatureReaderTest extends HtsjdkTest {
     @Test
     public void testReadingBeyondIntSizedBlock() throws IOException {
         final Block block = new Block(0, ((long) Integer.MAX_VALUE) * 2);
-        final SeekableFileStream stream = new SeekableFileStream(Path.of("/dev/zero").toFile());
+        final SeekableFileStream stream = new SeekableFileStream(Path.of("/dev/zero"));
         final TribbleIndexedFeatureReader.BlockStreamWrapper blockStreamWrapper = new TribbleIndexedFeatureReader.BlockStreamWrapper(stream, block);
         final int chunkSize = 100000; // 10 Mb
         final int chunksToRead = (int) Math.ceil(block.getSize() / (chunkSize * 1.0));

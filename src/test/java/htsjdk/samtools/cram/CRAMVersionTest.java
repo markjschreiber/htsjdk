@@ -22,6 +22,7 @@ import org.testng.annotations.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.zip.CRC32;
 
 /**
@@ -39,7 +40,7 @@ public class CRAMVersionTest extends HtsjdkTest {
     @Test
     public void test_V3() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ReferenceSource source = new ReferenceSource((File) null);
+        ReferenceSource source = new ReferenceSource((Path) null);
         SAMFileHeader samFileHeader = new SAMFileHeader();
         CRAMVersion cramVersion = CramVersions.CRAM_v3;
         CRAMFileWriter w = new CRAMFileWriter(baos, source, samFileHeader, null);

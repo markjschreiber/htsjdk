@@ -64,7 +64,7 @@ public class BAMSBIIndexerTest extends HtsjdkTest {
         final SBIIndex index = fromBAMFile(BAM_FILE, 2);
         final long[] virtualOffsets = index.getVirtualOffsets();
         final Long firstVirtualOffset = virtualOffsets[0];
-        final Long expectedFirstAlignment = SAMUtils.findVirtualOffsetOfFirstRecordInBam(new SeekableFileStream(BAM_FILE.toFile()));
+        final Long expectedFirstAlignment = SAMUtils.findVirtualOffsetOfFirstRecordInBam(new SeekableFileStream(BAM_FILE));
         Assert.assertEquals(firstVirtualOffset, expectedFirstAlignment);
         Assert.assertNotNull(getReadAtOffset(BAM_FILE, firstVirtualOffset));
 
@@ -108,7 +108,7 @@ public class BAMSBIIndexerTest extends HtsjdkTest {
 
     private SBIIndex fromBAMFile(final Path bamFile, final long granularity) throws IOException {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        BAMSBIIndexer.createIndex(new SeekableFileStream(bamFile.toFile()), out, granularity);
+        BAMSBIIndexer.createIndex(new SeekableFileStream(bamFile), out, granularity);
         return SBIIndex.load(new ByteArrayInputStream(out.toByteArray()));
     }
 

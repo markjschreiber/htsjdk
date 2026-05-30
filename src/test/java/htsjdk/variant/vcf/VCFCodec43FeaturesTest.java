@@ -167,7 +167,7 @@ public class VCFCodec43FeaturesTest extends VariantBaseTest {
 
     @Test(dataProvider="all43IndexableFiles")
     public void testVCF43IndexRoundTripQuery(final Path testFile) throws IOException {
-        final Path tempDir = TestUtil.getTempDirectory("VCF43Codec", "indextest").toPath();
+        final Path tempDir = TestUtil.getTempDirectory("VCF43Codec", "indextest");
         tempDir.toFile().deleteOnExit();
 
         // copy our input vcf to a temp location, and create a tabix index

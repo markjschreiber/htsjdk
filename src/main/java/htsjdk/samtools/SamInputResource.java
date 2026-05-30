@@ -356,9 +356,13 @@ class FileInputResource extends InputResource {
         if (seekableStream != null) {
             return seekableStream;
         } else {
+            // Use FileInputStream for non-regular files (pipes, FIFOs) because
+            // Files.newInputStream() returns a channel-based stream that tries to seek
+            // when available() is called, which fails on non-seekable files.
+            // See: https://bugs.java.com/view_bug.do?bug_id=7036144
             try {
-                return Files.newInputStream(pathResource);
-            } catch (IOException e) {
+                return new java.io.FileInputStream(pathResource.toFile());
+            } catch (FileNotFoundException e) {
                 throw new RuntimeIOException(e);
             }
         }

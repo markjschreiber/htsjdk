@@ -245,12 +245,11 @@ public class SAMFileWriterFactoryTest extends HtsjdkTest {
         header.addSequence(new SAMSequenceRecord("chr1", 123));
         try (final SAMFileWriter writer = factory.makeBAMWriter(header, false, new ByteArrayOutputStream())) {
             Assert.assertEquals(maxRecsInRam, ((SAMFileWriterImpl) writer).getMaxRecordsInRam());
-            // SAMFileWriterImpl.getTempDirectory() returns File, so convert Path to File for comparison
-            Assert.assertEquals(wontBeUsed.toFile(), ((SAMFileWriterImpl) writer).getTempDirectory());
+            Assert.assertEquals(wontBeUsed, ((SAMFileWriterImpl) writer).getTempDirectory());
         }
         try (final SAMFileWriter writer = factory.makeSAMWriter(header, false, new ByteArrayOutputStream())) {
             Assert.assertEquals(maxRecsInRam, ((SAMFileWriterImpl) writer).getMaxRecordsInRam());
-            Assert.assertEquals(wontBeUsed.toFile(), ((SAMFileWriterImpl) writer).getTempDirectory());
+            Assert.assertEquals(wontBeUsed, ((SAMFileWriterImpl) writer).getTempDirectory());
         }
     }
 
@@ -501,7 +500,7 @@ public class SAMFileWriterFactoryTest extends HtsjdkTest {
         tmpPath.toFile().deleteOnExit();
         try (SAMFileWriter samFileWriter = new SAMFileWriterFactory().makeWriter(new SAMFileHeader(), true, tmpPath, null)) {}
 
-        Assert.assertTrue(SamStreams.isBAMFile(new BufferedInputStream(new SeekableFileStream(tmpPath.toFile()))));
+        Assert.assertTrue(SamStreams.isBAMFile(new BufferedInputStream(new SeekableFileStream(tmpPath))));
     }
 
     @Test
@@ -512,7 +511,7 @@ public class SAMFileWriterFactoryTest extends HtsjdkTest {
         refTmpPath.toFile().deleteOnExit();
         try(SAMFileWriter ignored = new SAMFileWriterFactory().makeWriter(new SAMFileHeader(), true, cramTmpPath, refTmpPath)) {}
 
-        Assert.assertTrue(SamStreams.isCRAMFile(new BufferedInputStream(new SeekableFileStream(cramTmpPath.toFile()))));
+        Assert.assertTrue(SamStreams.isCRAMFile(new BufferedInputStream(new SeekableFileStream(cramTmpPath))));
     }
 
     @Test(groups = {"defaultReference"})
@@ -523,7 +522,7 @@ public class SAMFileWriterFactoryTest extends HtsjdkTest {
         try (SAMFileWriter samFileWriter = new SAMFileWriterFactory().makeWriter(new SAMFileHeader(), true, cramTmpPath, null)) {
             fillSmallBam(samFileWriter);
         }
-        Assert.assertTrue(SamStreams.isCRAMFile(new BufferedInputStream(new SeekableFileStream(cramTmpPath.toFile()))));
+        Assert.assertTrue(SamStreams.isCRAMFile(new BufferedInputStream(new SeekableFileStream(cramTmpPath))));
     }
 
     @Test
@@ -532,7 +531,7 @@ public class SAMFileWriterFactoryTest extends HtsjdkTest {
         Assert.assertFalse(tmpPath.getFileName().toString().contains("."));
         tmpPath.toFile().deleteOnExit();
         try(SAMFileWriter samFileWriter = new SAMFileWriterFactory().makeWriter(new SAMFileHeader(), true, tmpPath, null)) {}
-        Assert.assertTrue(SamStreams.isBAMFile(new BufferedInputStream(new SeekableFileStream(tmpPath.toFile()))));
+        Assert.assertTrue(SamStreams.isBAMFile(new BufferedInputStream(new SeekableFileStream(tmpPath))));
     }
 
     @Test
@@ -544,7 +543,7 @@ public class SAMFileWriterFactoryTest extends HtsjdkTest {
 
         tmpPath.toFile().deleteOnExit();
         try(SAMFileWriter samFileWriter = new SAMFileWriterFactory().makeWriter(new SAMFileHeader(), true, tmpPath, null)){}
-        Assert.assertTrue(SamStreams.isBAMFile(new BufferedInputStream(new SeekableFileStream(tmpPath.toFile()))));
+        Assert.assertTrue(SamStreams.isBAMFile(new BufferedInputStream(new SeekableFileStream(tmpPath))));
     }
 
     @Test
@@ -553,7 +552,7 @@ public class SAMFileWriterFactoryTest extends HtsjdkTest {
         tmpPath.toFile().deleteOnExit();
         try(SAMFileWriter samFileWriter = new SAMFileWriterFactory().makeSAMOrBAMWriter(new SAMFileHeader(), true, tmpPath)){}
 
-        Assert.assertTrue(SamStreams.isBAMFile(new BufferedInputStream(new SeekableFileStream(tmpPath.toFile()))));
+        Assert.assertTrue(SamStreams.isBAMFile(new BufferedInputStream(new SeekableFileStream(tmpPath))));
     }
 
     // Task 2.4: Test creating BAM writer with Path

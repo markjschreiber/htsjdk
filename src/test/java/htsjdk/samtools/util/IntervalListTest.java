@@ -82,7 +82,7 @@ public class IntervalListTest extends HtsjdkTest {
     @Test
     public void testIntervalListFrom() throws IOException {
         final String testPath = TEST_DIR.resolve("IntervalListFromVCFTestComp.interval_list").toString();
-        final IntervalList fromFileList = IntervalList.fromFile(new File(testPath));
+        final IntervalList fromFileList = IntervalList.fromPath(new File(testPath).toPath());
         final IntervalList fromPathList = IntervalList.fromPath(IOUtil.getPath(testPath));
         fromFileList.getHeader().getSequenceDictionary().assertSameDictionary(fromPathList.getHeader().getSequenceDictionary());
         Assert.assertEquals(CollectionUtil.makeCollection(fromFileList.iterator()), CollectionUtil.makeCollection(fromPathList.iterator()));

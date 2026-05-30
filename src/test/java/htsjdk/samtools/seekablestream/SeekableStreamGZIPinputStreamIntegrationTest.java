@@ -120,7 +120,7 @@ public class SeekableStreamGZIPinputStreamIntegrationTest extends HtsjdkTest {
 
     @Test(dataProvider = "compressedVcfsToTest")
     public void testWrappedSeekableStreamInGZIPinputStream(final Path input, final long nLines) throws Exception {
-        try (final LineReader reader = new BufferedLineReader(new GZIPInputStream(new SeekableFileStream(input.toFile())))) {
+        try (final LineReader reader = new BufferedLineReader(new GZIPInputStream(new SeekableFileStream(input)))) {
             for (int i = 0; i < nLines; i++) {
                 Assert.assertNotNull(reader.readLine(), "line #" + reader.getLineNumber());
             }
@@ -131,7 +131,7 @@ public class SeekableStreamGZIPinputStreamIntegrationTest extends HtsjdkTest {
 
     @Test(dataProvider = "compressedVcfsToTest")
     public void testConsistencyWithBgzip(final Path input, final long nLines) throws Exception {
-        try (final InputStream gzIs = new GZIPInputStream(new SeekableFileStream(input.toFile()));
+        try (final InputStream gzIs = new GZIPInputStream(new SeekableFileStream(input));
              final InputStream bgzIs = new BlockCompressedInputStream(input)) {
             int bgz = bgzIs.read();
             while (bgz != -1) {

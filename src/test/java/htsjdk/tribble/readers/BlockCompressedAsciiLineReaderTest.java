@@ -23,7 +23,7 @@ public class BlockCompressedAsciiLineReaderTest extends HtsjdkTest {
         // write a file that has more than a single compressed block
         final long expectedFinalLineOffset = populateMultiBlockCompressedFile(multiBlockFile);
 
-        try (final BlockCompressedInputStream bcis = new BlockCompressedInputStream(multiBlockFile);
+        try (final BlockCompressedInputStream bcis = new BlockCompressedInputStream(multiBlockFile.toPath());
             final BlockCompressedAsciiLineReader asciiLineReader = new BlockCompressedAsciiLineReader(bcis))
         {
             String line = null;
@@ -49,7 +49,7 @@ public class BlockCompressedAsciiLineReaderTest extends HtsjdkTest {
         multiBlockFile.deleteOnExit();
         populateMultiBlockCompressedFile(multiBlockFile);
 
-        try (final BlockCompressedInputStream bcis = new BlockCompressedInputStream(multiBlockFile);
+        try (final BlockCompressedInputStream bcis = new BlockCompressedInputStream(multiBlockFile.toPath());
              final BlockCompressedAsciiLineReader asciiLineReader = new BlockCompressedAsciiLineReader(bcis)) {
             asciiLineReader.readLine(new PositionalBufferedStream(new ByteArrayInputStream(new byte[1100])));
         }
@@ -59,7 +59,7 @@ public class BlockCompressedAsciiLineReaderTest extends HtsjdkTest {
     private long populateMultiBlockCompressedFile(final File tempBlockCompressedFile) throws IOException {
         long sentinelLineOffset = -1;
 
-        try (BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(tempBlockCompressedFile)) {
+        try (BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(tempBlockCompressedFile.toPath())) {
             // write lines until we exceed the size of the first block (block address != 0)
             do {
                 bcos.write("Write this line enough times to exceed the size or a compressed block\n".getBytes());

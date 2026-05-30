@@ -76,7 +76,7 @@ public class BlockCompressedInputStreamTest extends HtsjdkTest {
 	@Test
     public void seek_should_read_block() throws Exception {
 		byte[] uncompressed = Files.readAllBytes(BLOCK_UNCOMPRESSED.toPath());
-		try (SeekableFileStream sfs = new SeekableFileStream(BLOCK_COMPRESSED)) {
+		try (SeekableFileStream sfs = new SeekableFileStream(BLOCK_COMPRESSED.toPath())) {
 			try (BlockCompressedInputStream stream = new BlockCompressedInputStream(sfs)) {
 				// seek to the start of the first block
 				for (int i = 0; i < BLOCK_COMPRESSED_OFFSETS.length-1; i++) {
@@ -94,7 +94,7 @@ public class BlockCompressedInputStreamTest extends HtsjdkTest {
 	}
 	@Test
     public void available_should_return_number_of_bytes_left_in_current_block() throws Exception {
-		try (BlockCompressedInputStream stream = new BlockCompressedInputStream(BLOCK_COMPRESSED)) {
+		try (BlockCompressedInputStream stream = new BlockCompressedInputStream(BLOCK_COMPRESSED.toPath())) {
 			for (int i = 0; i < BLOCK_UNCOMPRESSED_END_POSITIONS[0]; i++) {
 				Assert.assertEquals(stream.available(), BLOCK_UNCOMPRESSED_END_POSITIONS[0] - i);
 				stream.read();
@@ -130,7 +130,7 @@ public class BlockCompressedInputStreamTest extends HtsjdkTest {
 
     private List<String> writeTempBlockCompressedFileForInflaterTest( final File tempFile ) throws IOException {
         final List<String> linesWritten = new ArrayList<>();
-        try ( final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(tempFile, 5) ) {
+        try ( final BlockCompressedOutputStream bcos = new BlockCompressedOutputStream(tempFile.toPath(), 5) ) {
             String s = "Hi, Mom!\n";
             bcos.write(s.getBytes()); //Call 1
             linesWritten.add(s);
@@ -162,13 +162,13 @@ public class BlockCompressedInputStreamTest extends HtsjdkTest {
         return new Object[][]{
                 // set the default InflaterFactory to a CountingInflaterFactory
                 {(CheckedExceptionInputStreamSupplier) () -> new BlockCompressedInputStream(new FileInputStream(tempFile), false), expectedOutputSupplier, 4, countingInflaterFactory},
-                {(CheckedExceptionInputStreamSupplier) () -> new BlockCompressedInputStream(tempFile), expectedOutputSupplier, 4, countingInflaterFactory},
-                {(CheckedExceptionInputStreamSupplier) () -> new AsyncBlockCompressedInputStream(tempFile), expectedOutputSupplier, 4, countingInflaterFactory},
+                {(CheckedExceptionInputStreamSupplier) () -> new BlockCompressedInputStream(tempFile.toPath()), expectedOutputSupplier, 4, countingInflaterFactory},
+                {(CheckedExceptionInputStreamSupplier) () -> new AsyncBlockCompressedInputStream(tempFile.toPath()), expectedOutputSupplier, 4, countingInflaterFactory},
                 {(CheckedExceptionInputStreamSupplier) () -> new BlockCompressedInputStream(new URL("http://broadinstitute.github.io/picard/testdata/index_test.bam")), null, 21, countingInflaterFactory},
                 // provide a CountingInflaterFactory explicitly
                 {(CheckedExceptionInputStreamSupplier) () -> new BlockCompressedInputStream(new FileInputStream(tempFile), false, countingInflaterFactory), expectedOutputSupplier, 4, null},
-                {(CheckedExceptionInputStreamSupplier) () -> new BlockCompressedInputStream(tempFile, countingInflaterFactory), expectedOutputSupplier, 4, null},
-                {(CheckedExceptionInputStreamSupplier) () -> new AsyncBlockCompressedInputStream(tempFile, countingInflaterFactory), expectedOutputSupplier, 4, null},
+                {(CheckedExceptionInputStreamSupplier) () -> new BlockCompressedInputStream(tempFile.toPath(), countingInflaterFactory), expectedOutputSupplier, 4, null},
+                {(CheckedExceptionInputStreamSupplier) () -> new AsyncBlockCompressedInputStream(tempFile.toPath(), countingInflaterFactory), expectedOutputSupplier, 4, null},
                 {(CheckedExceptionInputStreamSupplier) () -> new BlockCompressedInputStream(new URL("http://broadinstitute.github.io/picard/testdata/index_test.bam"), countingInflaterFactory), null, 21, null}
         };
     }

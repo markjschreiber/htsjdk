@@ -80,7 +80,7 @@ public class VCFWriterUnitTest extends VariantBaseTest {
 
     @BeforeClass
     private void createTemporaryDirectory() {
-        tempDir = TestUtil.getTempDirectory("VCFWriter", "StaleIndex").toPath();
+        tempDir = TestUtil.getTempDirectory("VCFWriter", "StaleIndex");
         tempDir.toFile().deleteOnExit();
     }
 

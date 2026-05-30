@@ -60,7 +60,7 @@ public class BlockCompressedTerminatorTest extends HtsjdkTest {
 
     @Test( dataProvider = "getFiles")
     public void testCheckTerminationForFiles(File compressedFile, BlockCompressedInputStream.FileTermination expected) throws IOException {
-        Assert.assertEquals(BlockCompressedInputStream.checkTermination(compressedFile), expected);
+        Assert.assertEquals(BlockCompressedInputStream.checkTermination(compressedFile.toPath()), expected);
     }
 
     @Test( dataProvider = "getFiles")
@@ -92,7 +92,7 @@ public class BlockCompressedTerminatorTest extends HtsjdkTest {
     private static File getValidCompressedFile() throws IOException {
         final File tmpCompressedFile = File.createTempFile("test.", ".bgzf");
         tmpCompressedFile.deleteOnExit();
-        final BlockCompressedOutputStream os = new BlockCompressedOutputStream(tmpCompressedFile);
+        final BlockCompressedOutputStream os = new BlockCompressedOutputStream(tmpCompressedFile.toPath());
         os.write("Hi, Mom!\n".getBytes());
         os.close();
         return tmpCompressedFile;

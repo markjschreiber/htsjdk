@@ -48,7 +48,7 @@ public class LiftOverTest extends HtsjdkTest {
 
     @BeforeClass
     public void initLiftOver() {
-        liftOver = new LiftOver(CHAIN_FILE);
+        liftOver = new LiftOver(CHAIN_FILE.toPath());
         contigMap = liftOver.getContigMap();
     }
 
@@ -463,7 +463,7 @@ public class LiftOverTest extends HtsjdkTest {
 
     @Test
     public void testWriteChain() throws Exception {
-        final OverlapDetector<Chain> chains = Chain.loadChains(CHAIN_FILE);
+        final OverlapDetector<Chain> chains = Chain.loadChains(CHAIN_FILE.toPath());
         File outFile = File.createTempFile("test.", ".chain");
         outFile.deleteOnExit();
         PrintWriter pw = new PrintWriter(outFile);
@@ -474,7 +474,7 @@ public class LiftOverTest extends HtsjdkTest {
         }
         pw.close();
 
-        final OverlapDetector<Chain> newChains = Chain.loadChains(outFile);
+        final OverlapDetector<Chain> newChains = Chain.loadChains(outFile.toPath());
         final Map<Integer, Chain> newChainMap = new TreeMap<>();
         for (final Chain chain : newChains.getAll()) {
             newChainMap.put(chain.id, chain);

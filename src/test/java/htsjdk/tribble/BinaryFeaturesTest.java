@@ -28,7 +28,7 @@ public class BinaryFeaturesTest extends HtsjdkTest {
     @Test(enabled = true, dataProvider = "BinaryFeatureSources")
     public void testBinaryCodec(final Path source, final FeatureCodec<Feature, LineIterator> codec) throws IOException {
         final Path tmpFile = Files.createTempFile("testBinaryCodec", ".binary.bed");
-        ExampleBinaryCodec.convertToBinaryTest(source.toFile(), tmpFile.toFile(), codec);
+        ExampleBinaryCodec.convertToBinaryTest(source, tmpFile, codec);
         tmpFile.toFile().deleteOnExit();
 
         final FeatureReader<Feature> originalReader = AbstractFeatureReader.getFeatureReader(source.toAbsolutePath().toString(), codec, false);

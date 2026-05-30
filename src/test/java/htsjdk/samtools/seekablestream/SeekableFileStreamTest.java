@@ -43,7 +43,7 @@ public class SeekableFileStreamTest extends HtsjdkTest {
     public void testSeek() throws Exception {
         String expectedLine = "ccccccccc";
         File testFile = new File("src/test/resources/htsjdk/samtools/seekablestream/seekTest.txt");
-        SeekableFileStream is = new SeekableFileStream(testFile);
+        SeekableFileStream is = new SeekableFileStream(testFile.toPath());
         is.seek(20);
         BufferedLineReader reader = new BufferedLineReader(is);
         String nextLine = reader.readLine();

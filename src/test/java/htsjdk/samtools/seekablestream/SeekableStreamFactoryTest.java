@@ -85,7 +85,7 @@ public class SeekableStreamFactoryTest extends HtsjdkTest {
         tempDir.deleteOnExit();
         final File inputBam = new File(tempDir, "index_test.bam");
         inputBam.deleteOnExit();
-        IOUtil.copyFile(testBam, inputBam);
+        IOUtil.copyPath(testBam.toPath(), inputBam.toPath());
 
         // make sure the input string we use is URL-encoded
         final String inputString = Paths.get(inputBam.getAbsolutePath()).toUri().toString();

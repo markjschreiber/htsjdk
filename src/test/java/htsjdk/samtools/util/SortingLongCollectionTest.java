@@ -93,7 +93,7 @@ public class SortingLongCollectionTest extends HtsjdkTest {
     public void testPositive(final String testName, final int numValuesToGenerate, final int maxValuesInRam) {
         final long[] values = new long[numValuesToGenerate];
         int numStringsGenerated = 0;
-        final SortingLongCollection sortingCollection = new SortingLongCollection(maxValuesInRam, tmpDir);
+        final SortingLongCollection sortingCollection = new SortingLongCollection(maxValuesInRam, tmpDir.toPath());
         final Random valueGenerator = new Random(123);
         for (int i = 0; i < numValuesToGenerate; ++i) {
             final long value = valueGenerator.nextLong();

@@ -20,14 +20,14 @@ public class CramContainerHeaderIteratorTest extends HtsjdkTest {
         final File cramFile = new File("src/test/resources/htsjdk/samtools/cram/NA12878.20.21.1-100.100-SeqsPerSlice.0-unMapped.cram");
         CramHeader expectedHeader;
         List<Container> fullContainers;
-        try (SeekableFileStream seekableFileStream = new SeekableFileStream(cramFile)) {
+        try (SeekableFileStream seekableFileStream = new SeekableFileStream(cramFile.toPath())) {
             CramContainerIterator iterator = new CramContainerIterator(seekableFileStream);
             expectedHeader = iterator.getCramHeader();
             fullContainers = Iterables.slurp(iterator);
         }
         CramHeader actualHeader;
         List<Container> headerOnlyContainers;
-        try (SeekableFileStream seekableFileStream = new SeekableFileStream(cramFile)) {
+        try (SeekableFileStream seekableFileStream = new SeekableFileStream(cramFile.toPath())) {
             CramContainerHeaderIterator iterator = new CramContainerHeaderIterator(seekableFileStream);
             actualHeader = iterator.getCramHeader();
             headerOnlyContainers = Iterables.slurp(iterator);
@@ -50,7 +50,7 @@ public class CramContainerHeaderIteratorTest extends HtsjdkTest {
             Assert.assertNull(headerOnlyContainer.getCompressionHeader());
             Assert.assertTrue(headerOnlyContainer.getSlices().isEmpty());
             // try to read a container from the offset to check it's correct
-            try (SeekableFileStream seekableFileStream = new SeekableFileStream(cramFile)) {
+            try (SeekableFileStream seekableFileStream = new SeekableFileStream(cramFile.toPath())) {
                 final long byteOffset = headerOnlyContainer.getContainerByteOffset();
                 seekableFileStream.seek(headerOnlyContainer.getContainerByteOffset());
                 Container container = new Container(actualHeader.getCRAMVersion(), seekableFileStream, byteOffset);
