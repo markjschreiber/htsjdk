@@ -45,8 +45,14 @@ import java.util.zip.GZIPInputStream;
 /**
  * <p>Describes the functionality for producing {@link SamReader}, and offers a
  * handful of static generators.</p>
+ *
+ * <p>As of version 4.0.0, this factory accepts {@link java.nio.file.Path} and {@link java.net.URI}
+ * inputs exclusively. All {@code java.io.File}-based methods have been removed. Any NIO-compatible
+ * filesystem provider (e.g., jimfs, S3, HDFS) can be used via the standard SPI mechanism.</p>
+ *
+ * <p>Example: Open a BAM file using a Path</p>
  * <pre>
- *     SamReaderFactory.makeDefault().open(new File("/my/bam.bam");
+ *     SamReaderFactory.makeDefault().open(Path.of("/my/bam.bam"));
  * </pre>
  * <p>Example: Configure a factory</p>
  * <pre>
@@ -63,8 +69,11 @@ import java.util.zip.GZIPInputStream;
  *              .enable({@link Option#INCLUDE_SOURCE_IN_RECORDS}, {@link Option#VALIDATE_CRC_CHECKSUMS})
  *              .validationStringency({@link ValidationStringency#SILENT});
  *
- *     // File-based bam
- *     final {@link SamReader} fileReader = factory.open(new File("/my/bam.bam"));
+ *     // Path-based bam
+ *     final {@link SamReader} fileReader = factory.open(Path.of("/my/bam.bam"));
+ *
+ *     // URI-based bam
+ *     final {@link SamReader} uriReader = factory.open(URI.create("s3://bucket/data.bam"));
  *
  *     // HTTP-hosted BAM with index from an arbitrary stream
  *     final SeekableStream myBamIndexStream = ...

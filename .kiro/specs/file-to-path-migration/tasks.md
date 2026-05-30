@@ -157,7 +157,7 @@ The implementation uses **Java** as the programming language, following HTSJDK's
   - Update JavaDoc
   - _Requirements: 4.6_
 
-- [ ] 6. Checkpoint - Verify readers and writers work with Path
+- [x] 6. Checkpoint - Verify readers and writers work with Path
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 7. Phase 5: Index Reader Classes Migration
@@ -263,7 +263,7 @@ The implementation uses **Java** as the programming language, following HTSJDK's
   - Update JavaDoc
   - _Requirements: 7.4_
 
-- [ ] 10. Checkpoint - Verify indexes and references work with Path
+- [x] 10. Checkpoint - Verify indexes and references work with Path
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 11. Phase 8: Utility Classes Migration
@@ -593,18 +593,18 @@ The implementation uses **Java** as the programming language, following HTSJDK's
   - Ensure all tests pass, ask the user if questions arise.
   - **Result**: 33,631/33,659 tests pass. 3 failures are pre-existing environment issues (require samtools binary or htsget server).
 
-- [ ] 16. Phase 13: Documentation and Migration Guide
+- [x] 16. Phase 13: Documentation and Migration Guide
   - Create comprehensive documentation for the migration
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-- [ ] 16.1 Update JavaDoc for all migrated classes
+- [x] 16.1 Update JavaDoc for all migrated classes
   - Add @deprecated tags to removed methods (if any remain temporarily)
   - Document Path-based replacements
   - Add examples of Path and URI usage
   - Document NIO SPI compatibility
   - _Requirements: 11.4_
 
-- [ ] 16.2 Create migration guide document
+- [x] 16.2 Create migration guide document
   - Document all removed File-based methods
   - Document all changed method signatures
   - Provide before/after code examples for common patterns
@@ -612,21 +612,21 @@ The implementation uses **Java** as the programming language, following HTSJDK's
   - Include examples for custom filesystem usage
   - _Requirements: 11.1, 11.2, 11.3_
 
-- [ ] 16.3 Update CHANGELOG with breaking changes
+- [x] 16.3 Update CHANGELOG with breaking changes
   - List all removed File-based methods by class
   - List all changed method signatures
   - Note behavioral changes (if any)
   - Provide link to migration guide
   - _Requirements: 11.1, 11.2_
 
-- [ ] 16.4 Update README with version information
+- [x] 16.4 Update README with version information
   - Note that version 4.0.0 is a breaking change
   - Link to migration guide
   - Update version compatibility matrix
   - Document NIO SPI support
   - _Requirements: 11.5_
 
-- [ ] 17. Final Checkpoint - Complete migration validation
+- [x] 17. Final Checkpoint - Complete migration validation
   - Run full test suite including property tests
   - Verify all documentation is complete
   - Verify no File imports in main source

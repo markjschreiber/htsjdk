@@ -43,6 +43,11 @@ import static htsjdk.samtools.SamReader.Type.*;
 
 /**
  * Create a writer for writing SAM, BAM, or CRAM files.
+ *
+ * <p>As of version 4.0.0, this factory accepts {@link java.nio.file.Path} exclusively.
+ * All {@code java.io.File}-based constructors and methods have been removed. Use
+ * {@link java.nio.file.Path} or {@link java.net.URI} to specify output locations,
+ * enabling compatibility with NIO filesystem providers (e.g., jimfs, S3, HDFS).</p>
  */
 public class SAMFileWriterFactory implements Cloneable {
     private final static Log log = Log.getInstance(SAMFileWriterFactory.class);

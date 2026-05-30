@@ -13,6 +13,102 @@ manipulating HTS data.
 
 > **NOTE: _HTSJDK has only partial support for the latest Variant Call Format Specification.  VCFv4.3 can be read but not written and there is no support for BCFv2.2_**
 
+### Version 4.0.0 — Breaking Changes
+
+Version 4.0.0 removes all `java.io.File`-based APIs in favor of `java.nio.file.Path`. This enables
+transparent support for custom NIO filesystem providers (e.g., jimfs for testing, S3, HDFS, GCS)
+via Java's standard SPI mechanism.
+
+**Key changes:**
+- All `File`-based methods and constructors have been removed from the public API
+- `Defaults.REFERENCE_FASTA` is now a `Path` instead of a `File`
+- Minimum Java version is now 17
+
+**Quick example using the Path-based API:**
+```java
+import java.nio.file.Path;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+
+// Open a BAM file
+SamReader reader = SamReaderFactory.makeDefault().open(Path.of("input.bam"));
+
+// Works with any NIO filesystem provider
+SamReader s3Reader = SamReaderFactory.makeDefault().open(URI.create("s3://bucket/input.bam"));
+```
+
+See the **[Migration Guide](MIGRATION_GUIDE_4.0.md)** for detailed upgrade instructions, a full
+list of removed methods, and before/after code examples.
+
+### Using HTSJDK with Amazon S3
+
+HTSJDK 4.0's Path-based API works with the [AWS Java NIO SPI for S3](https://github.com/awslabs/aws-java-nio-spi-for-s3) provider, allowing you to read and write genomic files directly from S3 buckets without staging to local storage.
+
+**Add the dependency:**
+
+```groovy
+// Gradle
+implementation 'com.github.samtools:htsjdk:4.0.0'
+runtimeOnly 'software.amazon.nio.s3:aws-java-nio-spi-for-s3:2.4.0'
+```
+
+```xml
+<!-- Maven -->
+<dependency>
+    <groupId>com.github.samtools</groupId>
+    <artifactId>htsjdk</artifactId>
+    <version>4.0.0</version>
+</dependency>
+<dependency>
+    <groupId>software.amazon.nio.s3</groupId>
+    <artifactId>aws-java-nio-spi-for-s3</artifactId>
+    <version>2.4.0</version>
+    <scope>runtime</scope>
+</dependency>
+```
+
+**Read a BAM file from S3:**
+
+```java
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.SAMRecord;
+
+// The S3 NIO provider is discovered automatically via Java's ServiceLoader
+Path bamPath = Paths.get(URI.create("s3://my-bucket/samples/sample1.bam"));
+
+try (SamReader reader = SamReaderFactory.makeDefault().open(bamPath)) {
+    for (SAMRecord record : reader) {
+        // Process alignments directly from S3
+        System.out.println(record.getReadName());
+    }
+}
+```
+
+**Read a VCF file from S3:**
+
+```java
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import htsjdk.variant.vcf.VCFFileReader;
+import htsjdk.variant.variantcontext.VariantContext;
+
+Path vcfPath = Paths.get(URI.create("s3://my-bucket/variants/cohort.vcf.gz"));
+Path indexPath = Paths.get(URI.create("s3://my-bucket/variants/cohort.vcf.gz.tbi"));
+
+try (VCFFileReader reader = new VCFFileReader(vcfPath, indexPath, true)) {
+    for (VariantContext vc : reader) {
+        System.out.println(vc.getContig() + ":" + vc.getStart());
+    }
+}
+```
+
+No code changes to HTSJDK are required — the S3 provider registers itself via `META-INF/services/java.nio.file.spi.FileSystemProvider` and is used automatically when paths with the `s3://` scheme are encountered. AWS credentials are resolved using the [default credential provider chain](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials-chain.html).
+
 ### Documentation & Getting Help
 
 API documentation for all versions of HTSJDK since `1.128` are available through [javadoc.io](http://www.javadoc.io/doc/com.github.samtools/htsjdk).
@@ -102,19 +198,17 @@ Broadly speaking the majority of the code is covered under the MIT license with 
 
 ### Java Minimum Version Support Policy
 
-Htsjdk currently targets Java 8 and is tested on both 8 and 11.
+Htsjdk 4.0.0 requires Java 17 or later.
 
-We intend to drop support for 8/11 and switch exclusively to 17+ in our next release (4.0.0).
-
-Given our promise of 6 months of warning before a move off of 8, we will atttempt to provide 3.x releases on demand if
-any critical bugs are discovered in the next 6 months.
+Previous 3.x releases supported Java 8 and 11. We will provide 3.x patch releases on demand if
+critical bugs are discovered in the next 6 months.
 
 Java SE Major Release | End of Java SE Oracle Public Updates / OpenJDK support | Proposed End of Support in HTSJDK | Actual End of Support in HTSJDK
 ---- | ---- |-----------------------------------| ----
 6  | Feb 2013 | Aug 2013                          | Oct 2015
 7  | Apr 2015 | Oct 2015                          | Oct 2015
-8  | Jan 2019 | Feb 2022                          | TBD
-11 | Sep 2022 | Feb 2022                          | TBD
+8  | Jan 2019 | Feb 2022                          | 4.0.0
+11 | Sep 2022 | Feb 2022                          | 4.0.0
 17 | TBD      | TBD                               | TBD
 
  
