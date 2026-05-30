@@ -47,7 +47,7 @@ public class ReferenceSequenceTests extends HtsjdkTest {
     @Test(dataProvider="fastaTestParameters")
     public void testSingleShortSequence(int chroms, int basesPerChrom) throws Exception {
         File f = makeRandomReference(chroms, basesPerChrom);
-        ReferenceSequenceFile ref = ReferenceSequenceFileFactory.getReferenceSequenceFile(f);
+        ReferenceSequenceFile ref = ReferenceSequenceFileFactory.getReferenceSequenceFile(f.toPath());
 
         for (int i=1; i<=chroms; ++i) {
             ReferenceSequence seq = ref.nextSequence();

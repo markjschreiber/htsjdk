@@ -36,13 +36,14 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 public class IupacTest extends HtsjdkTest {
     @Test(dataProvider = "basicDataProvider")
     public void basic(final String tempFileExtension) throws Exception {
-        final File outputFile = File.createTempFile("iupacTest.", tempFileExtension);
-        outputFile.deleteOnExit();
+        final Path outputFile = File.createTempFile("iupacTest.", tempFileExtension).toPath();
+        outputFile.toFile().deleteOnExit();
         final SAMFileWriter writer = new SAMFileWriterFactory().makeSAMOrBAMWriter(new SAMFileHeader(), false, outputFile);
         final String bases1 = "=ACMGRSVTWYHKDBNA";
         final String bases2 = "A=ACMGRSVTWYHKDBN"; // Test both high-order and low-order base encoding.

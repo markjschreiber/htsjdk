@@ -14,10 +14,12 @@ import htsjdk.samtools.util.SequenceUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import htsjdk.samtools.seekablestream.SeekableStream;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
@@ -47,7 +49,7 @@ public class CRAMSliceMD5Test extends HtsjdkTest{
         Assert.assertEquals(slice.getReferenceMD5(), ucRefMD5);
 
         // check the CRAM file reads:
-        final CRAMFileReader reader = new CRAMFileReader(new ByteArrayInputStream(test.cramData), (File) null, test.referenceSourceUpperCased, ValidationStringency.STRICT);
+        final CRAMFileReader reader = new CRAMFileReader(new ByteArrayInputStream(test.cramData), (Path) null, test.referenceSourceUpperCased, ValidationStringency.STRICT);
         final SAMRecordIterator iterator = reader.getIterator();
         Assert.assertTrue(iterator.hasNext());
         Assert.assertEquals(iterator.next(), test.record);
@@ -58,7 +60,7 @@ public class CRAMSliceMD5Test extends HtsjdkTest{
         final CramTestCase test = new CramTestCase();
 
         // try reading the CRAM file with the incorrect ref source that does not upper case bases:
-        final CRAMFileReader reader = new CRAMFileReader(new ByteArrayInputStream(test.cramData), (File) null, test.referenceSourceMixedCase, ValidationStringency.STRICT);
+        final CRAMFileReader reader = new CRAMFileReader(new ByteArrayInputStream(test.cramData), (SeekableStream) null, test.referenceSourceMixedCase, ValidationStringency.STRICT);
         final SAMRecordIterator iterator = reader.getIterator();
         // expect an exception here due to slice MD5 mismatch:
         iterator.hasNext();

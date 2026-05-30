@@ -11,8 +11,8 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class CRAMRecordReadFeaturesTest extends HtsjdkTest {
 
@@ -72,9 +72,9 @@ public class CRAMRecordReadFeaturesTest extends HtsjdkTest {
     ) throws IOException {
         // ensure these are handled correctly on read by comparing the SAMRecords created when reading the
         // CRAM with the SAMRecords from the corresponding truth SAM (see https://github.com/samtools/htsjdk/issues/1379)
-        final File testCRAM = new File(cramFileName);
-        final File testSAM = new File(samFileName);
-        final File referenceFile = referenceFileName == null ? null : new File(referenceFileName);
+        final Path testCRAM = Path.of(cramFileName);
+        final Path testSAM = Path.of(samFileName);
+        final Path referenceFile = referenceFileName == null ? null : Path.of(referenceFileName);
 
         try (final SamReader cramReader = SamReaderFactory.make().referenceSequence(referenceFile).open(testCRAM);
              final SamReader samReader = SamReaderFactory.make().referenceSequence(referenceFile).open(testSAM)) {

@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -114,14 +115,14 @@ public class SAMSequenceRecordTest extends HtsjdkTest {
         };
     }
 
-    File AccessFileWithAlternateContigName;
+    Path AccessFileWithAlternateContigName;
 
     @BeforeTest
     void setup() throws IOException {
-        File input = new File("src/test/resources/htsjdk/samtools/SamSequenceRecordTest/alternate_contig_names.sam");
+        Path input = Path.of("src/test/resources/htsjdk/samtools/SamSequenceRecordTest/alternate_contig_names.sam");
 
-        final File outputFile = File.createTempFile("tmp.", ".bam");
-        outputFile.deleteOnExit();
+        final Path outputFile = File.createTempFile("tmp.", ".bam").toPath();
+        outputFile.toFile().deleteOnExit();
 
         final SamReader samReader = SamReaderFactory.make().open(input);
         final SAMFileHeader fileHeader = samReader.getFileHeader().clone();

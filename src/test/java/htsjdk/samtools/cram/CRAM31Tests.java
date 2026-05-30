@@ -17,6 +17,7 @@ import htsjdk.samtools.cram.common.CRAMVersion;
 import htsjdk.samtools.cram.common.CramVersions;
 import htsjdk.samtools.cram.structure.CramHeader;
 import htsjdk.utils.SamtoolsTestUtils;
+import org.testng.SkipException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.Assert;
@@ -103,6 +104,12 @@ public class CRAM31Tests extends HtsjdkTest {
             final IOPath testInput,
             final IOPath testReference,
             final String samtoolsCommandLineArgs) {
+
+        // Skip test if samtools is not available
+        if (!SamtoolsTestUtils.isSamtoolsAvailable()) {
+            throw new SkipException("Samtools is not available on this system. " +
+                    "Set the HTSJDK_SAMTOOLS_BIN environment variable to the samtools executable path.");
+        }
 
         // for testing CRAM 3.1, we use CRAM 3.0 as our ground-truth for comparison, so check to make
         // sure that our input test file is CRAM 3.0 and not 3.1

@@ -29,7 +29,6 @@ import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -49,10 +48,6 @@ public class ReferenceSequenceFileWalker implements Closeable {
 
     public ReferenceSequenceFileWalker(final Path path) {
         this(ReferenceSequenceFileFactory.getReferenceSequenceFile(path, HtsPath::new, true, false));
-    }
-
-    public ReferenceSequenceFileWalker(final File file) {
-        this(ReferenceSequenceFileFactory.getReferenceSequenceFile(file, true, false));
     }
 
     /**

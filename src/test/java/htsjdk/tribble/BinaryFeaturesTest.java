@@ -8,8 +8,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 
@@ -18,20 +19,20 @@ public class BinaryFeaturesTest extends HtsjdkTest {
     @DataProvider(name = "BinaryFeatureSources")
     public Object[][] createData1() {
         return new Object[][] {
-                { new File(TestUtils.DATA_DIR + "test.bed"),  new BEDCodec() },
-                { new File(TestUtils.DATA_DIR + "bed/Unigene.sample.bed"),  new BEDCodec() },
-                { new File(TestUtils.DATA_DIR + "bed/NA12878.deletions.10kbp.het.gq99.hand_curated.hg19_fixed.bed"),  new BEDCodec() },
+                { Path.of(TestUtils.DATA_DIR + "test.bed"),  new BEDCodec() },
+                { Path.of(TestUtils.DATA_DIR + "bed/Unigene.sample.bed"),  new BEDCodec() },
+                { Path.of(TestUtils.DATA_DIR + "bed/NA12878.deletions.10kbp.het.gq99.hand_curated.hg19_fixed.bed"),  new BEDCodec() },
         };
     }
 
     @Test(enabled = true, dataProvider = "BinaryFeatureSources")
-    public void testBinaryCodec(final File source, final FeatureCodec<Feature, LineIterator> codec) throws IOException {
-        final File tmpFile = File.createTempFile("testBinaryCodec", ".binary.bed");
-        ExampleBinaryCodec.convertToBinaryTest(source, tmpFile, codec);
-        tmpFile.deleteOnExit();
+    public void testBinaryCodec(final Path source, final FeatureCodec<Feature, LineIterator> codec) throws IOException {
+        final Path tmpFile = Files.createTempFile("testBinaryCodec", ".binary.bed");
+        ExampleBinaryCodec.convertToBinaryTest(source.toFile(), tmpFile.toFile(), codec);
+        tmpFile.toFile().deleteOnExit();
 
-        final FeatureReader<Feature> originalReader = AbstractFeatureReader.getFeatureReader(source.getAbsolutePath(), codec, false);
-        final FeatureReader<Feature> binaryReader = AbstractFeatureReader.getFeatureReader(tmpFile.getAbsolutePath(), new ExampleBinaryCodec(), false);
+        final FeatureReader<Feature> originalReader = AbstractFeatureReader.getFeatureReader(source.toAbsolutePath().toString(), codec, false);
+        final FeatureReader<Feature> binaryReader = AbstractFeatureReader.getFeatureReader(tmpFile.toAbsolutePath().toString(), new ExampleBinaryCodec(), false);
 
         // make sure the header is what we expect
         final List<String> header = (List<String>) binaryReader.getHeader();

@@ -61,14 +61,14 @@ public class QualityEncodingDetectorTest extends HtsjdkTest {
 
     @Test(dataProvider = "FASTQ_TESTCASES", groups = {"unix"})
     public void testFastqQualityInference(final File input, final FastqQualityFormat expectedQualityFormat) {
-        final FastqReader reader = new FastqReader(input);
+        final FastqReader reader = new FastqReader(input.toPath());
         Assert.assertEquals(QualityEncodingDetector.detect(reader), expectedQualityFormat);
         reader.close();
     }
 
     @Test(dataProvider = "BAM_TESTCASES", groups = {"unix"})
     public void testBamQualityInference(final File input, final FastqQualityFormat expectedQualityFormat) {
-        final SamReader reader = SamReaderFactory.makeDefault().open(input);
+        final SamReader reader = SamReaderFactory.makeDefault().open(input.toPath());
         Assert.assertEquals(QualityEncodingDetector.detect(reader), expectedQualityFormat);
     }
 

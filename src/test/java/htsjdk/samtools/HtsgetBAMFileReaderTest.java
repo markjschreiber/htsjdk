@@ -8,17 +8,18 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
 
+@Test(groups = "http")
 public class HtsgetBAMFileReaderTest extends HtsjdkTest {
     public static final String HTSGET_ENDPOINT = "http://127.0.0.1:3000/reads/";
     public static final String LOCAL_PREFIX = "htsjdk_test.";
 
     private final static URI htsgetBAM = URI.create(HTSGET_ENDPOINT + LOCAL_PREFIX + "index_test.bam");
 
-    private final static File bamFile = new File("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
+    private final static Path bamFile = Path.of("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
 
     private final static int nofMappedReads = 9721;
     private final static int nofUnmappedReads = 279;
@@ -274,7 +275,7 @@ public class HtsgetBAMFileReaderTest extends HtsjdkTest {
 
     @Test
     public static void testEnableFileSource() {
-        final SamReader reader = SamReaderFactory.makeDefault().open(new SamInputResource(new FileInputResource(bamFile)));
+        final SamReader reader = SamReaderFactory.makeDefault().open(new SamInputResource(new FileInputResource(bamFile.toFile())));
         bamFileReaderHtsgetGET.enableFileSource(reader, true);
         try (final CloseableIterator<SAMRecord> htsgetIterator = bamFileReaderHtsgetGET.getIterator()) {
             htsgetIterator.forEachRemaining(record -> Assert.assertEquals(record.getFileSource().getReader(), reader));

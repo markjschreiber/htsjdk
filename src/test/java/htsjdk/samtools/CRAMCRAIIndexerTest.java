@@ -13,6 +13,8 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class CRAMCRAIIndexerTest extends HtsjdkTest {
     }
 
     private void testCRAIIndexer(Index index) throws IOException {
-        final File CRAMFile = new File("src/test/resources/htsjdk/samtools/cram/test2.cram");
+        final Path CRAMFile = Path.of("src/test/resources/htsjdk/samtools/cram/test2.cram");
 
         try (final InputStream indexStream = new ByteArrayInputStream(index.getIndex(CRAMFile))) {
             final List<CRAIEntry> craiEntries = CRAMCRAIIndexer.readIndex(indexStream).getCRAIEntries();
@@ -148,11 +150,11 @@ public class CRAMCRAIIndexerTest extends HtsjdkTest {
     }
 
     private interface Index {
-        byte[] getIndex(final File CRAMFile) throws IOException;
+        byte[] getIndex(final Path CRAMFile) throws IOException;
     }
 
-    private byte[] fromContainer(final File CRAMFile) throws IOException {
-        try (final FileInputStream fis = new FileInputStream(CRAMFile);
+    private byte[] fromContainer(final Path CRAMFile) throws IOException {
+        try (final InputStream fis = Files.newInputStream(CRAMFile);
              final ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
 
             final CRAMCRAIIndexer craiIndexer = new CRAMCRAIIndexer(bos, getSamFileHeader(CRAMFile));
@@ -166,18 +168,18 @@ public class CRAMCRAIIndexerTest extends HtsjdkTest {
         }
     }
 
-    private byte[] fromStream(final File CRAMFile) throws IOException {
+    private byte[] fromStream(final Path CRAMFile) throws IOException {
         try (final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             final SeekableStream sfs = new SeekableFileStream(CRAMFile)) {
+             final SeekableStream sfs = new SeekableFileStream(CRAMFile.toFile())) {
 
             CRAMCRAIIndexer.writeIndex(sfs, bos);
             return bos.toByteArray();
         }
     }
 
-    private SAMFileHeader getSamFileHeader(final File CRAMFile) throws IOException {
-        final File refFile = new File("src/test/resources/htsjdk/samtools/cram/auxf.fa");
-        final File indexFile = null;
+    private SAMFileHeader getSamFileHeader(final Path CRAMFile) throws IOException {
+        final Path refFile = Path.of("src/test/resources/htsjdk/samtools/cram/auxf.fa");
+        final Path indexFile = null;
         final ReferenceSource refSource = new ReferenceSource(refFile);
         final CRAMFileReader reader = new CRAMFileReader(
                 CRAMFile,

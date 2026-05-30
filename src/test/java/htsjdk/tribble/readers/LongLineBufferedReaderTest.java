@@ -6,8 +6,9 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * @author mccowan
@@ -21,9 +22,9 @@ public class LongLineBufferedReaderTest extends HtsjdkTest {
      */
     @Test
     public void testReadLines() throws Exception {
-        String filePath = TestUtils.DATA_DIR + "large.txt";
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath)));
-        LongLineBufferedReader testReader = new LongLineBufferedReader(new InputStreamReader(new FileInputStream(filePath)));
+        Path filePath = Path.of(TestUtils.DATA_DIR, "large.txt");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(filePath)));
+        LongLineBufferedReader testReader = new LongLineBufferedReader(new InputStreamReader(Files.newInputStream(filePath)));
         String line;
         while((line = reader.readLine()) != null){
             Assert.assertEquals(testReader.readLine(), line);

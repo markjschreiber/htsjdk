@@ -138,19 +138,19 @@ public class CountRecords {
      */
     public static Index loadIndex(File featureFile, FeatureCodec codec) {
         // lets setup a index file name
-        File indexFile = Tribble.indexFile(featureFile);
+        java.nio.file.Path indexPath = Tribble.indexPath(featureFile.toPath());
 
         // our index instance;
         Index index = null;
 
         // can we read the index file
-        if (indexFile.canRead()) {
-            System.err.println("Loading index from disk for index file -> " + indexFile);
-            index = IndexFactory.loadIndex(indexFile.getAbsolutePath());
+        if (java.nio.file.Files.isReadable(indexPath)) {
+            System.err.println("Loading index from disk for index file -> " + indexPath);
+            index = IndexFactory.loadIndex(indexPath.toString());
         // else we want to make the index, and write it to disk if possible
         } else {
-            System.err.println("Creating the index and memory, then writing to disk for index file -> " + indexFile);
-            index = createAndWriteNewIndex(featureFile,indexFile,codec);
+            System.err.println("Creating the index and memory, then writing to disk for index file -> " + indexPath);
+            index = createAndWriteNewIndex(featureFile, indexPath.toFile(), codec);
         }
 
         return index;
@@ -165,7 +165,7 @@ public class CountRecords {
      */
     public static Index createAndWriteNewIndex(File featureFile, File indexFile, FeatureCodec codec) {
         try {
-            Index index = IndexFactory.createLinearIndex(featureFile, codec);
+            Index index = IndexFactory.createLinearIndex(featureFile.toPath(), codec);
 
             // try to write it to disk
             LittleEndianOutputStream stream = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile)));

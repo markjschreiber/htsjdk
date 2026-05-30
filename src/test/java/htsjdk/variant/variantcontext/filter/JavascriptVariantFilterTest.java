@@ -30,15 +30,15 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * @author Pierre Lindenbaum PhD Institut du Thorax - INSERM - Nantes - France
  */
 
 public class JavascriptVariantFilterTest extends HtsjdkTest {
-    final File testDir = new File("src/test/resources/htsjdk/variant");
+    final Path testDir = Path.of("src/test/resources/htsjdk/variant");
 
     @DataProvider
     public Object[][] jsData() {
@@ -49,8 +49,8 @@ public class JavascriptVariantFilterTest extends HtsjdkTest {
 
     @Test(dataProvider = "jsData")
     public void testJavascriptFilters(final String vcfFile, final String javascriptFile, final int expectCount) {
-        final File vcfInput = new File(testDir, vcfFile);
-        final File jsInput = new File(testDir, javascriptFile);
+        final Path vcfInput = testDir.resolve(vcfFile);
+        final Path jsInput = testDir.resolve(javascriptFile);
         final VCFFileReader vcfReader = new VCFFileReader(vcfInput, false);
         final JavascriptVariantFilter filter;
         try {

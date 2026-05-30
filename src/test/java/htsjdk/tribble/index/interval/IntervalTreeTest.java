@@ -32,8 +32,8 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -132,7 +132,7 @@ public class IntervalTreeTest extends HtsjdkTest {
 
         // Interval tree index
         int batchSize = 1;
-        Index idx = IndexFactory.createIntervalIndex(new File(bedFile), new BEDCodec(), batchSize);
+        Index idx = IndexFactory.createIntervalIndex(Path.of(bedFile), new BEDCodec(), batchSize);
 
         FeatureReader<BEDFeature> bfr = AbstractFeatureReader.getFeatureReader(bedFile, new BEDCodec(), idx);
         CloseableTribbleIterator<BEDFeature>iter = bfr.query(chr, start, end);

@@ -28,8 +28,9 @@ import htsjdk.samtools.util.CloserUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -235,7 +236,7 @@ public class SAMRecordDuplicateComparatorTest extends HtsjdkTest {
         assertEquals(Arrays.asList(-1, -1, -1), records, false);
     }
 
-    @Test()
+    @Test(groups = "defaultReference")
     public void sortAndValidate() throws IOException {
         // Generates synthetic data that is unsorted, it sorts the data, then validates that it was sorted correctly
 
@@ -253,7 +254,7 @@ public class SAMRecordDuplicateComparatorTest extends HtsjdkTest {
         }
 
         // Sort Bam
-        final File sortedBam = File.createTempFile("testOut",".bam");
+        final Path sortedBam = Files.createTempFile("testOut",".bam");
         final SamReader reader = randomSetOfRecords.getSamReader();
                 // SamReaderFactory.makeDefault().referenceSequence(Defaults.REFERENCE_FASTA).open(input);
         reader.getFileHeader().setSortOrder(SAMFileHeader.SortOrder.duplicate);
@@ -267,7 +268,7 @@ public class SAMRecordDuplicateComparatorTest extends HtsjdkTest {
 
         // Validate that the results are sorted
         final SAMSortOrderChecker sortChecker = new SAMSortOrderChecker(SAMFileHeader.SortOrder.duplicate);
-        final SamReader r = SamReaderFactory.makeDefault().referenceSequence(Defaults.REFERENCE_FASTA).open(sortedBam);
+        final SamReader r = SamReaderFactory.makeDefault().referenceSequence(Defaults.REFERENCE_FASTA.toPath()).open(sortedBam);
 
         for(final SAMRecord rec : r) {
             Assert.assertTrue(sortChecker.isSorted(rec), "Simulated read with name: " + rec.getReadName() + " is not in duplicate sort order.");

@@ -34,6 +34,7 @@ import htsjdk.samtools.util.zip.InflaterFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Path;
@@ -79,8 +80,6 @@ public abstract class SamReaderFactory {
 
     private static ValidationStringency defaultValidationStringency = ValidationStringency.DEFAULT_STRINGENCY;
 
-    abstract public SamReader open(final File file);
-
     /**
      * Open the specified path (without using any wrappers).
      *
@@ -88,6 +87,28 @@ public abstract class SamReaderFactory {
      */
     public SamReader open(final Path path) {
         return open(path, null, null);
+    }
+
+    /**
+     * Open the specified URI.
+     * <p>
+     * This is a convenience method that delegates to {@link #open(Path)} by converting the URI to a Path.
+     * The URI must be supported by an available NIO filesystem provider.
+     * </p>
+     *
+     * @param uri the URI of the SAM or BAM file to open (e.g., file:///path/to/file.bam)
+     * @return a SamReader for the specified URI
+     * @throws IOException if the URI cannot be converted to a Path or the file cannot be opened
+     */
+    public SamReader open(final URI uri) throws IOException {
+        try {
+            return open(Path.of(uri));
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid URI: " + uri + ". Expected format: scheme://path", e);
+        } catch (java.nio.file.FileSystemNotFoundException e) {
+            throw new IOException("No filesystem provider for scheme: " + uri.getScheme() + 
+                                 ". Install the appropriate NIO SPI provider.", e);
+        }
     }
 
     /**
@@ -133,20 +154,40 @@ public abstract class SamReaderFactory {
     /** Sets a specific Option to a boolean value. * */
     abstract public SamReaderFactory setOption(final Option option, boolean value);
 
-    /** Sets the specified reference sequence * */
-    abstract public SamReaderFactory referenceSequence(File referenceSequence);
-
     /** Sets the specified reference sequence. */
     abstract public SamReaderFactory referenceSequence(Path referenceSequence);
+
+    /**
+     * Sets the specified reference sequence from a URI.
+     * <p>
+     * This is a convenience method that delegates to {@link #referenceSequence(Path)} by converting the URI to a Path.
+     * The URI must be supported by an available NIO filesystem provider.
+     * </p>
+     *
+     * @param referenceUri the URI of the reference sequence file
+     * @return this factory
+     * @throws IOException if the URI cannot be converted to a Path
+     */
+    abstract public SamReaderFactory referenceSequence(URI referenceUri) throws IOException;
 
     /** Sets the specified reference sequence * */
     abstract public SamReaderFactory referenceSource(CRAMReferenceSource referenceSequence);
 
     /** Utility method to open the file get the header and close the file */
-    abstract public SAMFileHeader getFileHeader(File samFile);
-
-    /** Utility method to open the file get the header and close the file */
     abstract public SAMFileHeader getFileHeader(Path samFile);
+
+    /**
+     * Utility method to open the file from a URI, get the header, and close the file.
+     * <p>
+     * This is a convenience method that delegates to {@link #getFileHeader(Path)} by converting the URI to a Path.
+     * The URI must be supported by an available NIO filesystem provider.
+     * </p>
+     *
+     * @param samUri the URI of the SAM/BAM/CRAM file
+     * @return the file header
+     * @throws IOException if the URI cannot be converted to a Path or the file cannot be opened
+     */
+    abstract public SAMFileHeader getFileHeader(URI samUri) throws IOException;
 
     /** Reapplies any changed options to the reader * */
     abstract public void reapplyOptions(SamReader reader);
@@ -204,15 +245,6 @@ public abstract class SamReaderFactory {
         }
 
         @Override
-        public SamReader open(final File file) {
-            final SamInputResource r = SamInputResource.of(file);
-            final File indexMaybe = SamFiles.findIndex(file);
-            if (indexMaybe != null) r.index(indexMaybe);
-            return open(r);
-        }
-
-
-        @Override
         public ValidationStringency validationStringency() {
             return validationStringency;
         }
@@ -258,15 +290,21 @@ public abstract class SamReaderFactory {
         }
 
         @Override
-        public SamReaderFactory referenceSequence(final File referenceSequence) {
+        public SamReaderFactory referenceSequence(final Path referenceSequence) {
             this.referenceSource = new ReferenceSource(referenceSequence);
             return this;
         }
 
         @Override
-        public SamReaderFactory referenceSequence(final Path referenceSequence) {
-            this.referenceSource = new ReferenceSource(referenceSequence);
-            return this;
+        public SamReaderFactory referenceSequence(final URI referenceUri) throws IOException {
+            try {
+                return referenceSequence(Path.of(referenceUri));
+            } catch (IllegalArgumentException e) {
+                throw new IOException("Invalid URI: " + referenceUri + ". Expected format: scheme://path", e);
+            } catch (java.nio.file.FileSystemNotFoundException e) {
+                throw new IOException("No filesystem provider for scheme: " + referenceUri.getScheme() + 
+                                     ". Install the appropriate NIO SPI provider.", e);
+            }
         }
 
         @Override
@@ -276,7 +314,7 @@ public abstract class SamReaderFactory {
         }
 
         @Override
-        public SAMFileHeader getFileHeader(final File samFile) {
+        public SAMFileHeader getFileHeader(final Path samFile) {
             final SamReader reader = open(samFile);
             final SAMFileHeader header = reader.getFileHeader();
             CloserUtil.close(reader);
@@ -284,8 +322,8 @@ public abstract class SamReaderFactory {
         }
 
         @Override
-        public SAMFileHeader getFileHeader(final Path samFile) {
-            final SamReader reader = open(samFile);
+        public SAMFileHeader getFileHeader(final URI samUri) throws IOException {
+            final SamReader reader = open(samUri);
             final SAMFileHeader header = reader.getFileHeader();
             CloserUtil.close(reader);
             return header;
@@ -380,11 +418,13 @@ public abstract class SamReaderFactory {
                                     Math.max(Defaults.BUFFER_SIZE, BlockCompressedStreamConstants.MAX_COMPRESSED_BLOCK_SIZE)
                             );
                     File sourceFile = data.asFile();
-                    // calling asFile is safe even if indexMaybe is a Google Cloud Storage bucket
+                    Path sourcePath = data.asPath();
+                    // calling asFile/asPath is safe even if indexMaybe is a Google Cloud Storage bucket
                     // (in that case we just get null)
                     final File indexFile = indexMaybe == null ? null : indexMaybe.asFile();
+                    final Path indexPath = indexMaybe == null ? null : indexMaybe.asPath();
                     if (SamStreams.isBAMFile(bufferedStream)) {
-                        if (sourceFile == null || !sourceFile.isFile()) {
+                        if (sourcePath == null || !java.nio.file.Files.isRegularFile(sourcePath)) {
                             // check whether we can seek
                             final SeekableStream indexSeekable = indexMaybe == null ? null : indexMaybe.asUnbufferedSeekableStream();
                             // do not close bufferedStream, it's the same stream we're getting here.
@@ -392,7 +432,7 @@ public abstract class SamReaderFactory {
                             if (null == sourceSeekable || null == indexSeekable) {
                                 // not seekable.
                                 // it's OK that we consumed a bit of the stream already, this ctor expects it.
-                                primitiveSamReader = new BAMFileReader(bufferedStream, indexFile, false, asynchronousIO,
+                                primitiveSamReader = new BAMFileReader(bufferedStream, indexPath, false, asynchronousIO,
                                         validationStringency, this.samRecordFactory, this.inflaterFactory);
                             } else {
                                 // seekable.
@@ -406,7 +446,7 @@ public abstract class SamReaderFactory {
                         } else {
                             bufferedStream.close();
                             primitiveSamReader = new BAMFileReader(
-                                sourceFile, indexFile, false, asynchronousIO,
+                                sourcePath, indexPath, false, asynchronousIO,
                                 validationStringency, this.samRecordFactory, this.inflaterFactory);
                         }
                     } else if (BlockCompressedInputStream.isValidFile(bufferedStream)) {
@@ -417,21 +457,21 @@ public abstract class SamReaderFactory {
                         if (referenceSource == null) {
                             referenceSource = ReferenceSource.getDefaultCRAMReferenceSource();
                         }
-                        if (sourceFile == null || !sourceFile.isFile()) {
+                        if (sourcePath == null || !java.nio.file.Files.isRegularFile(sourcePath)) {
                             final SeekableStream indexSeekableStream =
                                     indexMaybe == null ?
                                             null :
                                             indexMaybe.asUnbufferedSeekableStream();
                             final SeekableStream sourceSeekableStream = data.asUnbufferedSeekableStream();
                             if (null == sourceSeekableStream || null == indexSeekableStream) {
-                                primitiveSamReader = new CRAMFileReader(bufferedStream, indexFile, referenceSource, validationStringency);
+                                primitiveSamReader = new CRAMFileReader(bufferedStream, indexPath, referenceSource, validationStringency);
                             } else {
                                 sourceSeekableStream.seek(0);
                                 primitiveSamReader = new CRAMFileReader(sourceSeekableStream, indexSeekableStream, referenceSource, validationStringency);
                             }
                         } else {
                             bufferedStream.close();
-                            primitiveSamReader = new CRAMFileReader(sourceFile, indexFile, referenceSource, validationStringency);
+                            primitiveSamReader = new CRAMFileReader(sourcePath, indexPath, referenceSource, validationStringency);
                         }
                     } else if (sourceFile != null && isSra(sourceFile)) {
                         if (bufferedStream != null) {
@@ -443,7 +483,7 @@ public abstract class SamReaderFactory {
                             bufferedStream.close();
                             throw new RuntimeException("Cannot use index file with textual SAM file");
                         }
-                        primitiveSamReader = new SAMTextReader(bufferedStream, sourceFile, validationStringency, this.samRecordFactory);
+                        primitiveSamReader = new SAMTextReader(bufferedStream, sourcePath, validationStringency, this.samRecordFactory);
                     }
                 }
 

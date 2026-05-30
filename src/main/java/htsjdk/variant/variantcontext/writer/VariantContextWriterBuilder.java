@@ -37,7 +37,6 @@ import htsjdk.tribble.index.IndexCreator;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndexCreator;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -75,13 +74,13 @@ import java.util.EnumSet;
        .setBuffer(8192);
  
    VariantContextWriter sample1_writer = builder
-       .setOutputFile("sample1.vcf")
+       .setOutputPath(Path.of("sample1.vcf"))
        .build();
    VariantContextWriter sample2_writer = builder
-       .setOutputFile("sample2.bcf")
+       .setOutputPath(Path.of("sample2.bcf"))
        .build();
    VariantContextWriter sample3_writer = builder
-       .setOutputFile("sample3.vcf.bgzf")
+       .setOutputPath(Path.of("sample3.vcf.bgzf"))
        .build();
    </pre>
    
@@ -96,11 +95,11 @@ import java.util.EnumSet;
        .unsetBuffering();
  
    VariantContextWriter sample1_writer = builder
-       .setOutputFile("sample1.custom_extension")
+       .setOutputPath(Path.of("sample1.custom_extension"))
        .setOutputFileType(OutputType.VCF)
        .build();
    VariantContextWriter sample2_writer = builder
-       .setOutputFile("sample2.custom_extension")
+       .setOutputPath(Path.of("sample2.custom_extension"))
        .setOutputFileType(OutputType.BLOCK_COMPRESSED_VCF)
        .build();
    </pre>
@@ -156,17 +155,6 @@ public class VariantContextWriterBuilder {
      * Set the output file for the next <code>VariantContextWriter</code> created by this builder.
      * Determines file type implicitly from the filename.
      *
-     * @param outFile the file the <code>VariantContextWriter</code> will write to
-     * @return this <code>VariantContextWriterBuilder</code>
-     */
-    public VariantContextWriterBuilder setOutputFile(final File outFile) {
-        return setOutputPath(IOUtil.toPath(outFile));
-    }
-
-    /**
-     * Set the output file for the next <code>VariantContextWriter</code> created by this builder.
-     * Determines file type implicitly from the filename.
-     *
      * @param outPath the file the <code>VariantContextWriter</code> will write to
      * @return this <code>VariantContextWriterBuilder</code>
      */
@@ -178,14 +166,41 @@ public class VariantContextWriterBuilder {
     }
 
     /**
+     * Set the output file for the next <code>VariantContextWriter</code> created by this builder from a URI.
+     * Determines file type implicitly from the filename.
+     * <p>
+     * This is a convenience method that delegates to {@link #setOutputPath(Path)} by converting the URI to a Path.
+     * The URI must be supported by an available NIO filesystem provider.
+     * </p>
+     *
+     * @param outUri the URI of the file the <code>VariantContextWriter</code> will write to (e.g., file:///path/to/file.vcf)
+     * @return this <code>VariantContextWriterBuilder</code>
+     * @throws RuntimeIOException if the URI cannot be converted to a Path
+     */
+    public VariantContextWriterBuilder setOutputURI(final java.net.URI outUri) {
+        try {
+            return setOutputPath(Path.of(outUri));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeIOException("Invalid URI: " + outUri + ". Expected format: scheme://path", e);
+        } catch (java.nio.file.FileSystemNotFoundException e) {
+            throw new RuntimeIOException("No filesystem provider for scheme: " + outUri.getScheme() + 
+                                        ". Install the appropriate NIO SPI provider.", e);
+        }
+    }
+
+    /**
      * Set the output file for the next <code>VariantContextWriter</code> created by this builder.
      * Determines file type implicitly from the filename.
+     * <p>
+     * This is a convenience method that converts the string to a Path using {@link Path#of(String)}.
+     * For more control, use {@link #setOutputPath(Path)} directly.
+     * </p>
      *
-     * @param outFile the file the <code>VariantContextWriter</code> will write to
+     * @param outFile the file path the <code>VariantContextWriter</code> will write to
      * @return this <code>VariantContextWriterBuilder</code>
      */
     public VariantContextWriterBuilder setOutputFile(final String outFile) {
-        return setOutputFile(new File(outFile));
+        return setOutputPath(Path.of(outFile));
     }
 
     /**
@@ -500,19 +515,6 @@ public class VariantContextWriterBuilder {
             writer = new AsyncVariantContextWriter(writer, AsyncVariantContextWriter.DEFAULT_QUEUE_SIZE);
 
         return writer;
-     }
-
-    /**
-     * Attempts to determine the type of file/data to write based on the File path being
-     * written to. Will attempt to determine using the logical filename; if that fails it will
-     * attempt to resolve any symlinks and try again.  If that fails, and the output file exists
-     * but is neither a file or directory then VCF_STREAM is returned.
-     *
-     * @param file A file whose {@link OutputType} we want to infer
-     * @return The file's {@link OutputType}. Never {@code null}.
-     */
-     public static OutputType determineOutputTypeFromFile(final File file) {
-        return determineOutputTypeFromFile(file.toPath());
      }
 
     /**

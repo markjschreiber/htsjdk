@@ -5,12 +5,12 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class AbstractBAMFileIndexTest extends HtsjdkTest {
 
-    private static final AbstractBAMFileIndex afi = new DiskBasedBAMFileIndex(new File("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam.bai"), null);
+    private static final AbstractBAMFileIndex afi = new DiskBasedBAMFileIndex(Path.of("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam.bai"), null);
 
     /**
      * @see <a href="https://github.com/samtools/htsjdk/issues/73">https://github.com/samtools/htsjdk/issues/73</a>

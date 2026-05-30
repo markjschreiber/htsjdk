@@ -23,11 +23,12 @@
  */
 package htsjdk.samtools.filter;
 
-import java.io.File;
-import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -41,11 +42,16 @@ import htsjdk.samtools.util.CloserUtil;
 import htsjdk.samtools.util.RuntimeScriptException;
 
 /**
- * Javascript filter with HEADER type containing TYPE records. contains two
- * static method to get a SAM Read filter or a VariantFilter.
+ * Javascript filter with HEADER type containing TYPE records.
  * 
- * warning: tools, like galaxy, using this class are not safe because a script
+ * <p>This abstract class provides a base for creating filters that use JavaScript
+ * to evaluate records. Subclasses include SAM record filters and variant filters.
+ * 
+ * <p><strong>Warning:</strong> Tools using this class are not safe because a script
  * can access the filesystem.
+ * 
+ * <p>All methods use {@link Path} for filesystem operations, enabling compatibility
+ * with Java NIO Service Provider Interface (SPI) and custom filesystems.
  * 
  * @author Pierre Lindenbaum PhD
  */
@@ -58,28 +64,33 @@ public abstract class AbstractJavascriptFilter<HEADER, TYPE> {
     protected Bindings bindings;
 
     /**
-     * constructor using a java.io.File script, compiles the script, puts
-     * 'header' in the bindings
+     * Constructor using a Path to a script file, compiles the script, puts
+     * 'header' in the bindings.
+     * 
+     * @param scriptPath path to the JavaScript file to be compiled
+     * @param header the header to be injected in the javascript context
+     * @throws IOException if the script file cannot be read
      */
-    protected AbstractJavascriptFilter(final File scriptFile, final HEADER header) throws IOException {
-        this(new FileReader(scriptFile), header);
+    protected AbstractJavascriptFilter(final Path scriptPath, final HEADER header) throws IOException {
+        this(Files.newBufferedReader(scriptPath), header);
     }
 
     /**
-     * constructor using a java.lang.String script, compiles the script, puts
-     * 'header' in the bindings
+     * Constructor using a String script expression, compiles the script, puts
+     * 'header' in the bindings.
+     * 
+     * @param scriptExpression the JavaScript expression to be compiled
+     * @param header the header to be injected in the javascript context
      */
     protected AbstractJavascriptFilter(final String scriptExpression, final HEADER header) {
         this(new StringReader(scriptExpression), header);
     }
 
     /**
-     * Constructor, compiles script, put header in the bindings
+     * Constructor, compiles script, put header in the bindings.
      * 
-     * @param scriptReader
-     *            reader containing the script. will be closed.
-     * @param header
-     *            the header to be injected in the javascript context
+     * @param scriptReader reader containing the script. will be closed.
+     * @param header the header to be injected in the javascript context
      */
     protected AbstractJavascriptFilter(final Reader scriptReader, final HEADER header) {
         final ScriptEngineManager manager = new ScriptEngineManager();
@@ -129,13 +140,11 @@ public abstract class AbstractJavascriptFilter<HEADER, TYPE> {
     public abstract String getRecordKey();
 
     /**
-     * Evaluates this predicate on the given argument
+     * Evaluates this predicate on the given argument.
      * 
-     * @param record
-     *            the record to test. It will be inject in the javascript
-     *            context using getRecordKey()
-     * @return true (keep) if the user script returned 1 or true, else false
-     *         (reject).
+     * @param record the record to test. It will be inject in the javascript
+     *               context using getRecordKey()
+     * @return true (keep) if the user script returned 1 or true, else false (reject).
      */
     protected boolean accept(final TYPE record) {
         try {

@@ -37,8 +37,8 @@ import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 public class CRAMFileWriterTest extends HtsjdkTest {
 
     LogLevel globalLogLevel;
-    final File SAM_TOOLS_TEST_DIR = new File("src/test/resources/htsjdk/samtools");
+    final Path SAM_TOOLS_TEST_DIR = Path.of("src/test/resources/htsjdk/samtools");
 
     @Test(description = "Test for lossy CRAM compression invariants.")
     public void lossyCramInvariantsTest() {
@@ -242,10 +242,10 @@ public class CRAMFileWriterTest extends HtsjdkTest {
     @Test
     public void test_roundtrip_tlen_preserved() throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final ReferenceSource source = new ReferenceSource(new File(SAM_TOOLS_TEST_DIR, "cram_tlen.fasta"));
+        final ReferenceSource source = new ReferenceSource(SAM_TOOLS_TEST_DIR.resolve("cram_tlen.fasta"));
         final List<SAMRecord> records = new ArrayList<>();
 
-        try (SamReader reader = SamReaderFactory.make().open(new File(SAM_TOOLS_TEST_DIR, "cram_tlen_reads.sorted.sam"));
+        try (SamReader reader = SamReaderFactory.make().open(SAM_TOOLS_TEST_DIR.resolve("cram_tlen_reads.sorted.sam"));
              CRAMFileWriter writer = new CRAMFileWriter(baos, source, reader.getFileHeader(), "test.cram")) {
             for (final SAMRecord record : reader) {
                 writer.addAlignment(record);
@@ -254,7 +254,7 @@ public class CRAMFileWriterTest extends HtsjdkTest {
 
         }
 
-        try (CRAMFileReader cramReader = new CRAMFileReader(new ByteArrayInputStream(baos.toByteArray()), (File) null, source, ValidationStringency.STRICT)) {
+        try (CRAMFileReader cramReader = new CRAMFileReader(new ByteArrayInputStream(baos.toByteArray()), (Path) null, source, ValidationStringency.STRICT)) {
             final SAMRecordIterator iterator = cramReader.getIterator();
             int i = 0;
             while (iterator.hasNext()) {
@@ -271,9 +271,9 @@ public class CRAMFileWriterTest extends HtsjdkTest {
     public void test_roundtrip_many_reads() throws IOException {
 
         // Create the input file
-        final File outputDir = IOUtil.createTempDir(this.getClass().getSimpleName() + ".tmp").toFile();
-        outputDir.deleteOnExit();
-        final Path output = new File(outputDir, "input.cram").toPath();
+        final Path outputDir = IOUtil.createTempDir(this.getClass().getSimpleName() + ".tmp");
+        outputDir.toFile().deleteOnExit();
+        final Path output = outputDir.resolve("input.cram");
         IOUtil.deleteOnExit(output);
         final Path fastaDir = IOUtil.createTempDir("CRAMFileWriterTest");
         IOUtil.deleteOnExit(fastaDir);
@@ -315,9 +315,10 @@ public class CRAMFileWriterTest extends HtsjdkTest {
 
     @Test
     public void testCRAMQuerySort() throws IOException {
-        final File input = new File(SAM_TOOLS_TEST_DIR, "cram_query_sorted.cram");
-        final File reference = new File(SAM_TOOLS_TEST_DIR, "cram_query_sorted.fasta");
-        final File outputFile = File.createTempFile("tmp.", ".cram");
+        final Path input = SAM_TOOLS_TEST_DIR.resolve("cram_query_sorted.cram");
+        final Path reference = SAM_TOOLS_TEST_DIR.resolve("cram_query_sorted.fasta");
+        final Path outputFile = Files.createTempFile("tmp.", ".cram");
+        outputFile.toFile().deleteOnExit();
         final SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault().referenceSequence(reference);
 
         try (final SamReader reader = samReaderFactory.open(input);

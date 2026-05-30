@@ -20,11 +20,9 @@ import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -33,7 +31,7 @@ import java.util.List;
  * check that for every records in the BAM file the query returns the same records from the CRAM file.
  */
 public class CRAMFileBAIIndexTest extends HtsjdkTest {
-    private static final File BAM_FILE = new File("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
+    private static final Path BAM_FILE = Path.of("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
     private static final int NUMBER_OF_UNMAPPED_READS = 279;
     private static final int NUMBER_OF_MAPPED_READS = 9721;
     private static final int NUMBER_OF_READS = 10000;
@@ -41,7 +39,6 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
     private final static String TEST_QUERY_ALIGNMENT_CONTIG = "chrM";
     private final static int TEST_QUERY_ALIGNMENT_START = 1519;
 
-    // Established by prepare method/@BeforeTest
     // Make a fake reference derived from the sequence dictionary in our input
     //TODO: Note that these tests are REALLY slow because the reference sequences in the dictionary
     // in the test file are large (250 mega-bases), and upper-casing them each time they're retrieved is slowwwwww
@@ -84,8 +81,8 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
     // Mixes testing queryAlignmentStart with each CRAMFileReaderConstructor
     // Separate into individual tests
     @Test(dataProvider = "filesWithContainerAndSlicePartitioningVariations")
-    public void testConstructors(final File cramFile) throws IOException {
-        final File baiFile = getBAIFileForCRAMFile(cramFile);
+    public void testConstructors(final Path cramFile) throws IOException {
+        final Path baiFile = getBAIFileForCRAMFile(cramFile);
         try (final CRAMFileReader reader = new CRAMFileReader(
                 cramFile,
                 baiFile,
@@ -101,7 +98,7 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
         }
 
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(cramFile),
+                new SeekableFileStream(cramFile.toFile()),
                 baiFile,
                 referenceSource,
                 ValidationStringency.SILENT)) {
@@ -115,8 +112,8 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
         }
 
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(cramFile),
-                new SeekableFileStream(baiFile),
+                new SeekableFileStream(cramFile.toFile()),
+                new SeekableFileStream(baiFile.toFile()),
                 referenceSource, ValidationStringency.SILENT)) {
             try (final CloseableIterator<SAMRecord> iterator = reader.queryAlignmentStart(
                     TEST_QUERY_ALIGNMENT_CONTIG,
@@ -129,8 +126,8 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
         }
 
         try (final CRAMFileReader reader = new CRAMFileReader(
-                new SeekableFileStream(cramFile),
-                (File)null,
+                new SeekableFileStream(cramFile.toFile()),
+                (Path)null,
                 referenceSource,
                 ValidationStringency.SILENT)) {
             Assert.expectThrows(SAMException.class,
@@ -138,7 +135,7 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
         }
 
         try (final CRAMFileReader reader  = new CRAMFileReader(
-                new SeekableFileStream(cramFile),
+                new SeekableFileStream(cramFile.toFile()),
                 (SeekableFileStream)null,
                 referenceSource,
                 ValidationStringency.SILENT)) {
@@ -309,44 +306,38 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
     }
 
     private static byte[] getBAIBytesForCRAMBytes(final byte[] cramBytes) throws IOException {
-        final File indexFile = Files.createTempFile("cramBytes", ".bai").toFile();
-        indexFile.deleteOnExit();
+        final Path indexFile = Files.createTempFile("cramBytes", ".bai");
+        indexFile.toFile().deleteOnExit();
         CRAMBAIIndexer.createIndex(new ByteArraySeekableStream(cramBytes), indexFile, null, ValidationStringency.STRICT);
-        return bytesFromFile(indexFile);
+        return bytesFromPath(indexFile);
     }
 
-    private static File getCRAMFileForBAMFile(
-            final File bamFile,
+    private static Path getCRAMFileForBAMFile(
+            final Path bamFile,
             final CRAMReferenceSource referenceSource,
             final CRAMEncodingStrategy cramEncodingStrategy) throws IOException {
         final byte [] cramBytes = getCRAMBytesForBAMFile(bamFile, referenceSource, cramEncodingStrategy);
-        final File cramFile = File.createTempFile(bamFile.getName(), ".cram") ;
-        cramFile.deleteOnExit();
-        try (final FileOutputStream fos = new FileOutputStream(cramFile)) {
-            fos.write(cramBytes);
-        }
+        final Path cramFile = Files.createTempFile(bamFile.getFileName().toString(), ".cram");
+        cramFile.toFile().deleteOnExit();
+        Files.write(cramFile, cramBytes);
         return cramFile;
     }
 
-    private static File getBAIFileForCRAMFile(final File cramFile) throws IOException {
-        final File baiIndexFile = new File(cramFile.getAbsolutePath() + ".bai");
-        baiIndexFile.deleteOnExit();
+    private static Path getBAIFileForCRAMFile(final Path cramFile) throws IOException {
+        final Path baiIndexFile = cramFile.resolveSibling(cramFile.getFileName().toString() + ".bai");
+        baiIndexFile.toFile().deleteOnExit();
         // TODO: its silly to use a stream constructor when we have a cram file...
-        CRAMBAIIndexer.createIndex(new SeekableFileStream(cramFile), baiIndexFile, null, ValidationStringency.STRICT);
+        CRAMBAIIndexer.createIndex(new SeekableFileStream(cramFile.toFile()), baiIndexFile, null, ValidationStringency.STRICT);
         return baiIndexFile;
     }
 
     //TODO: these are duplicated in CRAMFileCRAIIndexTest
-    private static byte[] bytesFromFile(final File file) throws IOException {
-        try (final FileInputStream fis = new FileInputStream(file)) {
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            IOUtil.copyStream(fis, baos);
-            return baos.toByteArray();
-        }
+    private static byte[] bytesFromPath(final Path file) throws IOException {
+        return Files.readAllBytes(file);
     }
 
     private static byte[] getCRAMBytesForBAMFile(
-            final File bamFile,
+            final Path bamFile,
             final CRAMReferenceSource source,
             final CRAMEncodingStrategy encodingStrategy) throws IOException {
         try (final SamReader samReader = SamReaderFactory.makeDefault().open(bamFile);
@@ -359,7 +350,7 @@ public class CRAMFileBAIIndexTest extends HtsjdkTest {
                     true,
                     source,
                     samReader.getFileHeader(),
-                    bamFile.getName())) {
+                    bamFile.getFileName().toString())) {
                 while (samIterator.hasNext()) {
                     SAMRecord record = samIterator.next();
                     cramWriter.addAlignment(record);

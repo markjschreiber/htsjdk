@@ -32,15 +32,15 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class LinearIndexTest extends HtsjdkTest {
-    private static final File RANDOM_FILE = new File("notMeaningful");
+    private static final Path RANDOM_FILE = Path.of("notMeaningful");
 
     private final static Block CHR1_B1 = new Block(1, 10);
     private final static Block CHR1_B2 = new Block(10, 20);
@@ -73,7 +73,7 @@ public class LinearIndexTest extends HtsjdkTest {
         chr2.updateLongestFeature(50);
 
         final List<LinearIndex.ChrIndex> indices = Arrays.asList(chr1, chr2);
-        return new LinearIndex(indices, RANDOM_FILE);
+        return new LinearIndex(indices, RANDOM_FILE.toFile());
     }
 
     @Test()
@@ -93,7 +93,7 @@ public class LinearIndexTest extends HtsjdkTest {
         Assert.assertTrue(idx.containsChromosome("chr2"));
         Assert.assertFalse(idx.containsChromosome("chr3"));
 
-        Assert.assertEquals(idx.getIndexedFile(), new File(RANDOM_FILE.getAbsolutePath()));
+        Assert.assertEquals(idx.getIndexedFile(), RANDOM_FILE.toAbsolutePath().toFile());
 
         Assert.assertNotNull(idx.getBlocks("chr1"));
         Assert.assertEquals(idx.getBlocks("chr1").size(), 3);
@@ -158,13 +158,13 @@ public class LinearIndexTest extends HtsjdkTest {
             Assert.assertEquals(qBlocks.get(i), eBlocks.get(i));
     }
 
-    File fakeBed = new File(TestUtils.DATA_DIR + "fakeBed.bed");
+    Path fakeBed = Path.of(TestUtils.DATA_DIR + "fakeBed.bed");
 
     @Test
     public void oneEntryFirstChr() {
         final BEDCodec code = new BEDCodec();
         final Index index = IndexFactory.createLinearIndex(fakeBed, code);
-        final AbstractFeatureReader reader = AbstractFeatureReader.getFeatureReader(fakeBed.getAbsolutePath(), code, index);
+        final AbstractFeatureReader reader = AbstractFeatureReader.getFeatureReader(fakeBed.toAbsolutePath().toString(), code, index);
 
         try {
             final CloseableTribbleIterator it = reader.iterator();
@@ -208,7 +208,7 @@ public class LinearIndexTest extends HtsjdkTest {
         // Linear binned index
         LinearIndex.enableAdaptiveIndexing = false;
         final int binSize = 1000;
-        Index idx = IndexFactory.createLinearIndex(new File(bedFile), new BEDCodec(), binSize);
+        Index idx = IndexFactory.createLinearIndex(Path.of(bedFile), new BEDCodec(), binSize);
 
         FeatureReader<BEDFeature> bfr = AbstractFeatureReader.getFeatureReader(bedFile, new BEDCodec(), idx);
         CloseableTribbleIterator<BEDFeature> iter = bfr.query(chr, start, end);
@@ -224,7 +224,7 @@ public class LinearIndexTest extends HtsjdkTest {
 
         //Repeat with adaptive indexing
         LinearIndex.enableAdaptiveIndexing = true;
-        idx = IndexFactory.createLinearIndex(new File(bedFile), new BEDCodec(), binSize);
+        idx = IndexFactory.createLinearIndex(Path.of(bedFile), new BEDCodec(), binSize);
 
         bfr = AbstractFeatureReader.getFeatureReader(bedFile, new BEDCodec(), idx);
         iter = bfr.query(chr, start, end);

@@ -18,26 +18,28 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 
 public class FeatureReaderTest extends HtsjdkTest {
-    private final static File asciiBedFile = new File(TestUtils.DATA_DIR + "test.bed");
-    private File binaryBedFile;
-    private final static File tabixBedFile = new File(TestUtils.DATA_DIR + "test.tabix.bed.gz");
+    private final static Path asciiBedFile = Path.of(TestUtils.DATA_DIR + "test.bed");
+    private Path binaryBedFile;
+    private final static Path tabixBedFile = Path.of(TestUtils.DATA_DIR + "test.tabix.bed.gz");
 
     @BeforeClass
     public void setup() throws IOException {
-        binaryBedFile = File.createTempFile("htsjdk-test.featurereader", ".bed");
-        binaryBedFile.deleteOnExit();
-        ExampleBinaryCodec.convertToBinaryTest(asciiBedFile, binaryBedFile, new BEDCodec());
+        binaryBedFile = Files.createTempFile("htsjdk-test.featurereader", ".bed");
+        binaryBedFile.toFile().deleteOnExit();
+        ExampleBinaryCodec.convertToBinaryTest(asciiBedFile.toFile(), binaryBedFile.toFile(), new BEDCodec());
     }
 
     @AfterClass
     public void tearDown() throws Exception {
-        binaryBedFile.delete();
+        Files.deleteIfExists(binaryBedFile);
     }
 
     @DataProvider(name = "indexProvider")
@@ -52,7 +54,7 @@ public class FeatureReaderTest extends HtsjdkTest {
     }
 
     @Test(dataProvider = "indexProvider")
-    public void testBedQuery(final File featureFile, final IndexFactory.IndexType indexType, final FeatureCodec<Feature, LocationAware> codec) throws IOException {
+    public void testBedQuery(final Path featureFile, final IndexFactory.IndexType indexType, final FeatureCodec<Feature, LocationAware> codec) throws IOException {
         final AbstractFeatureReader<Feature, ?> reader = getReader(featureFile, indexType, codec);
 
         // Query
@@ -77,7 +79,7 @@ public class FeatureReaderTest extends HtsjdkTest {
     }
 
     @Test(dataProvider = "indexProvider")
-    public void testLargeNumberOfQueries(final File featureFile, final IndexFactory.IndexType indexType, final FeatureCodec<Feature, LocationAware> codec) throws IOException {
+    public void testLargeNumberOfQueries(final Path featureFile, final IndexFactory.IndexType indexType, final FeatureCodec<Feature, LocationAware> codec) throws IOException {
         final AbstractFeatureReader<Feature, LocationAware> reader = getReader(featureFile, indexType, codec);
         for (int i = 0; i < 2000; i++) {
             for (final int start : Arrays.asList(500, 200, 201, 600, 100000)) {
@@ -109,7 +111,7 @@ public class FeatureReaderTest extends HtsjdkTest {
     }
 
     @Test(dataProvider = "indexProvider")
-    public void testBedNames(final File featureFile, final IndexFactory.IndexType indexType, final FeatureCodec<Feature, LocationAware> codec) throws IOException {
+    public void testBedNames(final Path featureFile, final IndexFactory.IndexType indexType, final FeatureCodec<Feature, LocationAware> codec) throws IOException {
         final AbstractFeatureReader<Feature, ?> reader = getReader(featureFile, indexType, codec);
         final String[] expectedSequences = {"chr1", "chr2"};
 
@@ -122,31 +124,29 @@ public class FeatureReaderTest extends HtsjdkTest {
         }
     }
 
-    private static <FEATURE extends Feature, SOURCE extends LocationAware> AbstractFeatureReader<FEATURE, SOURCE> getReader(final File featureFile,
+    private static <FEATURE extends Feature, SOURCE extends LocationAware> AbstractFeatureReader<FEATURE, SOURCE> getReader(final Path featureFile,
                                                                                                                             final IndexFactory.IndexType indexType,
                                                                                                                             final FeatureCodec<FEATURE, SOURCE> codec)
             throws IOException {
         if (indexType.canCreate()) {
             // for types we can create make a new index each time
-            final File idxFile = Tribble.indexFile(featureFile);
+            final Path idxFile = Tribble.indexPath(featureFile);
 
             // delete an already existing index
-            if (idxFile.exists()) {
-                idxFile.delete();
-            }
+            Files.deleteIfExists(idxFile);
             final Index idx = IndexFactory.createIndex(featureFile, codec, indexType);
             idx.write(idxFile);
 
-            idxFile.deleteOnExit();
+            idxFile.toFile().deleteOnExit();
         } // else  let's just hope the index exists, and if so use it
 
-        return AbstractFeatureReader.getFeatureReader(featureFile.getAbsolutePath(), codec);
+        return AbstractFeatureReader.getFeatureReader(featureFile.toAbsolutePath().toString(), codec);
     }
 
     @Test
     public void testReadingBeyondIntSizedBlock() throws IOException {
         final Block block = new Block(0, ((long) Integer.MAX_VALUE) * 2);
-        final SeekableFileStream stream = new SeekableFileStream(new File("/dev/zero"));
+        final SeekableFileStream stream = new SeekableFileStream(Path.of("/dev/zero").toFile());
         final TribbleIndexedFeatureReader.BlockStreamWrapper blockStreamWrapper = new TribbleIndexedFeatureReader.BlockStreamWrapper(stream, block);
         final int chunkSize = 100000; // 10 Mb
         final int chunksToRead = (int) Math.ceil(block.getSize() / (chunkSize * 1.0));

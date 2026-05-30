@@ -36,7 +36,6 @@ import htsjdk.tribble.TribbleException;
 import htsjdk.variant.bcf2.BCF2Codec;
 import htsjdk.variant.variantcontext.VariantContext;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -50,13 +49,6 @@ public class VCFFileReader implements VCFReader {
     private final FeatureReader<VariantContext> reader;
 
     /**
-     * Returns true if the given file appears to be a BCF file.
-     */
-    public static boolean isBCF(final File file) {
-        return isBCF(file.toPath());
-    }
-
-    /**
      * Returns true if the given path appears to be a BCF file.
      */
     public static boolean isBCF(final Path path) {
@@ -64,59 +56,7 @@ public class VCFFileReader implements VCFReader {
     }
 
     /**
-     * Returns the SAMSequenceDictionary from the provided VCF file.
-     */
-    public static SAMSequenceDictionary getSequenceDictionary(final File file) {
-        try (final VCFFileReader vcfFileReader = new VCFFileReader(file, false)) {
-            return vcfFileReader.getFileHeader().getSequenceDictionary();
-        }
-    }
-
-    /**
-     * Constructs a VCFFileReader that requires the index to be present.
-     */
-    public VCFFileReader(final File file) {
-        this(file, true);
-    }
-
-    /**
-     * Constructs a VCFFileReader with a specified index.
-     */
-    public VCFFileReader(final File file, final File indexFile) {
-        this(file, indexFile, true);
-    }
-
-    /**
-     * Allows construction of a VCFFileReader that will or will not assert the presence of an index as desired.
-     */
-    public VCFFileReader(final File file, final boolean requireIndex) {
-        // Note how we deal with type safety here, just casting to (FeatureCodec)
-        // in the call to getFeatureReader is not enough for Java 8.
-        this(file.toPath(), requireIndex);
-    }
-
-    /**
-     * Allows construction of a VCFFileReader with a specified index file.
-     */
-    public VCFFileReader(final File file, final File indexFile, final boolean requireIndex) {
-        // Note how we deal with type safety here, just casting to (FeatureCodec)
-        // in the call to getFeatureReader is not enough for Java 8.
-        this(file.toPath(), indexFile.toPath(), requireIndex);
-    }
-
-    /**
-     * returns Correct Feature codec for Path depending whether
-     * the name seems to indicate that it's a BCF.
-     *
-     * @param path to vcf/bcf
-     * @return FeatureCodec for input Path
-     */
-    private static FeatureCodec<VariantContext, ?> getCodecForPath(Path path) {
-        return isBCF(path) ? new BCF2Codec() : new VCFCodec();
-    }
-
-    /**
-     * Returns the SAMSequenceDictionary from the provided VCF file.
+     * Returns the SAMSequenceDictionary from the provided VCF path.
      */
     public static SAMSequenceDictionary getSequenceDictionary(final Path path) {
         try (final VCFFileReader r = new VCFFileReader(path, false)) {
@@ -149,6 +89,17 @@ public class VCFFileReader implements VCFReader {
     }
 
     /**
+     * returns Correct Feature codec for Path depending whether
+     * the name seems to indicate that it's a BCF.
+     *
+     * @param path to vcf/bcf
+     * @return FeatureCodec for input Path
+     */
+    private static FeatureCodec<VariantContext, ?> getCodecForPath(Path path) {
+        return isBCF(path) ? new BCF2Codec() : new VCFCodec();
+    }
+
+    /**
      * Allows construction of a VCFFileReader with a specified index path.
      */
     public VCFFileReader(final Path path, final Path indexPath, final boolean requireIndex) {
@@ -177,33 +128,6 @@ public class VCFFileReader implements VCFReader {
     }
 
     /**
-     * Parse a VCF file and convert to an IntervalList The name field of the IntervalList is taken from the ID field of the variant, if it exists. if not,
-     * creates a name of the format interval-n where n is a running number that increments only on un-named intervals
-     *
-     * @param file a VCF
-     * @return an {@link IntervalList}
-     *
-     * @deprecated since July 2018 use {@link #toIntervalList(Path)} instead
-     */
-    @Deprecated
-    public static IntervalList fromVcf(final File file) {
-        return toIntervalList(file.toPath());
-    }
-
-    /**
-     * Parse a VCF file and convert to an IntervalList The name field of the IntervalList is taken from the ID field of the variant, if it exists. if not,
-     * creates a name of the format interval-n where n is a running number that increments only on un-named intervals
-     *
-     * @param file
-     * @return
-     * @deprecated since July 2018 use {@link #toIntervalList(Path, boolean)} instead
-     */
-    @Deprecated
-    public static IntervalList fromVcf(final File file, final boolean includeFiltered) {
-        return toIntervalList(file.toPath(), includeFiltered);
-    }
-
-    /**
      * Converts the underlying VCFFileReader to an IntervalList. The name field of the IntervalList is taken from the
      * ID field of the variant, if it exists. If not, creates a name of the format 'interval-n' where n is a running
      * number that increments on un-named intervals. Will use the "END" tag in the INFO field as the end of the interval
@@ -226,41 +150,11 @@ public class VCFFileReader implements VCFReader {
      *
      * @param vcf the vcfReader to be used for the conversion
      * @return an IntervalList constructed from input vcf
-     *
-     * @deprecated since July 2018 since use {@link #toIntervalList(VCFFileReader)} instead
-     */
-    @Deprecated
-    public static IntervalList fromVcf(final VCFFileReader vcf) {
-        return fromVcf(vcf, false);
-    }
-
-    /**
-     * Converts a vcf to an IntervalList. The name field of the IntervalList is taken from the ID field of the variant, if it exists. If not,
-     * creates a name of the format interval-n where n is a running number that increments only on un-named intervals.
-     * Will use a "END" tag in the INFO field as the end of the interval (if exists).
-     *
-     * @param vcf the vcfReader to be used for the conversion
-     * @return an IntervalList constructed from input vcf
      */
     public static IntervalList toIntervalList(final VCFFileReader vcf) {
         return toIntervalList(vcf, false);
     }
 
-
-    /**
-     * Converts a vcf to an IntervalList. The name field of the IntervalList is taken from the ID field of the variant, if it exists. If not,
-     * creates a name of the format interval-n where n is a running number that increments only on un-named intervals.
-     * Will use a "END" tag in the INFO field as the end of the interval (if exists).
-     *
-     * @param vcf the vcfReader to be used for the conversion
-     * @return an IntervalList constructed from input vcf
-     *
-     * @deprecated since July 2018 since use {@link #toIntervalList(VCFFileReader, boolean)} instead
-     */
-    @Deprecated
-    public static IntervalList fromVcf(final VCFFileReader vcf, final boolean includeFiltered) {
-        return toIntervalList(vcf, includeFiltered);
-    }
 
     /**
      * Converts a {@link VCFFileReader} to an IntervalList. The name field of the Interval is taken from the ID field

@@ -25,7 +25,7 @@ package htsjdk.samtools;
 
 import htsjdk.samtools.util.StringUtil;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -65,7 +65,7 @@ public class SAMLineParser {
     private final SAMRecordFactory samRecordFactory;
     private final ValidationStringency validationStringency;
     private final SAMFileHeader mFileHeader;
-    private final File mFile;
+    private final Path mPath;
     private Optional<SamFlagField> samFlagField = Optional.empty();
 
     private final TextTagCodec tagCodec = new TextTagCodec();
@@ -94,14 +94,14 @@ public class SAMLineParser {
      *
      * @param samFileHeader SAM file header
      * @param samFileReader SAM file reader For passing to SAMRecord.setFileSource, may be null.
-     * @param samFile       SAM file being read (for error message only, may be null)
+     * @param samPath       SAM file path being read (for error message only, may be null)
      */
     public SAMLineParser(final SAMFileHeader samFileHeader,
-                         final SamReader samFileReader, final File samFile) {
+                         final SamReader samFileReader, final Path samPath) {
 
         this(new DefaultSAMRecordFactory(),
                 ValidationStringency.DEFAULT_STRINGENCY, samFileHeader,
-                samFileReader, samFile);
+                samFileReader, samPath);
     }
 
     /**
@@ -111,12 +111,12 @@ public class SAMLineParser {
      * @param validationStringency validation stringency
      * @param samFileHeader        SAM file header
      * @param samFileReader        SAM file reader For passing to SAMRecord.setFileSource, may be null.
-     * @param samFile              SAM file being read (for error message only, may be null)
+     * @param samPath              SAM file path being read (for error message only, may be null)
      */
     public SAMLineParser(final SAMRecordFactory samRecordFactory,
                          final ValidationStringency validationStringency,
                          final SAMFileHeader samFileHeader, final SamReader samFileReader,
-                         final File samFile) {
+                         final Path samPath) {
 
         if (samRecordFactory == null)
             throw new NullPointerException("The SamRecordFactory must be set");
@@ -135,7 +135,7 @@ public class SAMLineParser {
         this.mParentReader = samFileReader;
 
         // Can be null
-        this.mFile = samFile;
+        this.mPath = samPath;
     }
 
     /**
@@ -474,8 +474,8 @@ public class SAMLineParser {
 
     private String makeErrorString(final String reason) {
         String fileMessage = "";
-        if (mFile != null) {
-            fileMessage = "File " + mFile + "; ";
+        if (mPath != null) {
+            fileMessage = "File " + mPath + "; ";
         }
         return "Error parsing text SAM file. "
                 + reason + "; " + fileMessage + "Line "

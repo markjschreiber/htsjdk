@@ -43,9 +43,9 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -64,7 +64,7 @@ import java.util.Set;
  */
 public class BCF2WriterUnitTest extends VariantBaseTest {
 
-    private File tempDir;
+    private Path tempDir;
 
     /**
      * create a fake header of known quantity
@@ -89,8 +89,8 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
 
     @BeforeClass
     private void createTemporaryDirectory() {
-        tempDir = TestUtil.getTempDirectory("BCFWriter", "StaleIndex");
-        tempDir.deleteOnExit();
+        tempDir = TestUtil.getTempDirectory("BCFWriter", "StaleIndex").toPath();
+        tempDir.toFile().deleteOnExit();
     }
 
 
@@ -99,11 +99,11 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
      */
     @Test
     public void testWriteAndReadBCF() throws IOException {
-        final File bcfOutputFile = File.createTempFile("testWriteAndReadVCF.", ".bcf", tempDir);
-        bcfOutputFile.deleteOnExit();
+        final Path bcfOutputFile = Files.createTempFile(tempDir, "testWriteAndReadVCF.", ".bcf");
+        bcfOutputFile.toFile().deleteOnExit();
         final VCFHeader header = createFakeHeader();
         try (final VariantContextWriter writer = new VariantContextWriterBuilder()
-                .setOutputFile(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
+                .setOutputPath(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
                 .unsetOption(Options.INDEX_ON_THE_FLY)
                 .build()) {
             writer.writeHeader(header);
@@ -128,12 +128,12 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
      */
     @Test
     public void testWriteAndReadBCFWithIndex() throws IOException {
-        final File bcfOutputFile = File.createTempFile("testWriteAndReadVCF.", ".bcf", tempDir);
-        bcfOutputFile.deleteOnExit();
-        Tribble.indexFile(bcfOutputFile).deleteOnExit();
+        final Path bcfOutputFile = Files.createTempFile(tempDir, "testWriteAndReadVCF.", ".bcf");
+        bcfOutputFile.toFile().deleteOnExit();
+        Tribble.indexPath(bcfOutputFile).toFile().deleteOnExit();
         final VCFHeader header = createFakeHeader();
         try (final VariantContextWriter writer = new VariantContextWriterBuilder()
-                .setOutputFile(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
+                .setOutputPath(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
                 .setOptions(EnumSet.of(Options.INDEX_ON_THE_FLY))
                 .build()) {
             writer.writeHeader(header);
@@ -156,22 +156,22 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
      */
     @Test
     public void testWriteAndReadBCFHeaderless() throws IOException {
-        final File bcfOutputFile = File.createTempFile("testWriteAndReadBCFWithHeader.", ".bcf", tempDir);
-        bcfOutputFile.deleteOnExit();
-        final File bcfOutputHeaderlessFile = File.createTempFile("testWriteAndReadBCFHeaderless.", ".bcf", tempDir);
-        bcfOutputHeaderlessFile.deleteOnExit();
+        final Path bcfOutputFile = Files.createTempFile(tempDir, "testWriteAndReadBCFWithHeader.", ".bcf");
+        bcfOutputFile.toFile().deleteOnExit();
+        final Path bcfOutputHeaderlessFile = Files.createTempFile(tempDir, "testWriteAndReadBCFHeaderless.", ".bcf");
+        bcfOutputHeaderlessFile.toFile().deleteOnExit();
 
         final VCFHeader header = createFakeHeader();
         // we write two files, bcfOutputFile with the header, and bcfOutputHeaderlessFile with just the body
         try (final VariantContextWriter fakeBCFFileWriter = new VariantContextWriterBuilder()
-                .setOutputFile(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
+                .setOutputPath(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
                 .unsetOption(Options.INDEX_ON_THE_FLY)
                 .build()) {
             fakeBCFFileWriter.writeHeader(header); // writes header
         }
 
         try (final VariantContextWriter fakeBCFBodyFileWriter = new VariantContextWriterBuilder()
-                .setOutputFile(bcfOutputHeaderlessFile).setReferenceDictionary(header.getSequenceDictionary())
+                .setOutputPath(bcfOutputHeaderlessFile).setReferenceDictionary(header.getSequenceDictionary())
                 .unsetOption(Options.INDEX_ON_THE_FLY)
                 .build()) {
             fakeBCFBodyFileWriter.setHeader(header); // does not write header
@@ -181,8 +181,8 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
 
         VariantContextTestProvider.VariantContextContainer container;
 
-        try (final PositionalBufferedStream headerPbs = new PositionalBufferedStream(new FileInputStream(bcfOutputFile));
-        final PositionalBufferedStream bodyPbs = new PositionalBufferedStream(new FileInputStream(bcfOutputHeaderlessFile))) {
+        try (final PositionalBufferedStream headerPbs = new PositionalBufferedStream(Files.newInputStream(bcfOutputFile));
+        final PositionalBufferedStream bodyPbs = new PositionalBufferedStream(Files.newInputStream(bcfOutputHeaderlessFile))) {
 
             BCF2Codec codec = new BCF2Codec();
             codec.readHeader(headerPbs);
@@ -203,13 +203,13 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
      */
     @Test
     public void testReadAndWritePhasedBCF() throws IOException {
-        final File vcfInputFile = new File("src/test/resources/htsjdk/variant/phased.vcf");
-        final File bcfOutputFile = File.createTempFile("testWriteAndReadBCFHeaderless.", ".bcf", tempDir);
-        bcfOutputFile.deleteOnExit();
+        final Path vcfInputFile = Path.of("src/test/resources/htsjdk/variant/phased.vcf");
+        final Path bcfOutputFile = Files.createTempFile(tempDir, "testWriteAndReadBCFHeaderless.", ".bcf");
+        bcfOutputFile.toFile().deleteOnExit();
 
         try ( VCFFileReader vcfFile = new VCFFileReader(vcfInputFile);
 
-        VariantContextWriter bcfWriter = new VariantContextWriterBuilder().setOutputFile(bcfOutputFile).setReferenceDictionary(vcfFile.getFileHeader().getSequenceDictionary()).build();
+        VariantContextWriter bcfWriter = new VariantContextWriterBuilder().setOutputPath(bcfOutputFile).setReferenceDictionary(vcfFile.getFileHeader().getSequenceDictionary()).build();
 
         ) {
             bcfWriter.writeHeader(vcfFile.getFileHeader());
@@ -221,11 +221,11 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
             bcfWriter.close();
 
             // Reading the VCF and writing it to a BCF
-            final File vcfOutputFile = File.createTempFile("testWriteAndReadBCFHeaderless.", ".vcf", tempDir);
-            vcfOutputFile.deleteOnExit();
+            final Path vcfOutputFile = Files.createTempFile(tempDir, "testWriteAndReadBCFHeaderless.", ".vcf");
+            vcfOutputFile.toFile().deleteOnExit();
 
-            try (final PositionalBufferedStream headerPbs = new PositionalBufferedStream(new FileInputStream(bcfOutputFile));
-                 VariantContextWriter vcfWriter = new VariantContextWriterBuilder().setOutputFile(vcfOutputFile).setReferenceDictionary(vcfFile.getFileHeader().getSequenceDictionary()).build();
+            try (final PositionalBufferedStream headerPbs = new PositionalBufferedStream(Files.newInputStream(bcfOutputFile));
+                 VariantContextWriter vcfWriter = new VariantContextWriterBuilder().setOutputPath(vcfOutputFile).setReferenceDictionary(vcfFile.getFileHeader().getSequenceDictionary()).build();
                  ) {
                 vcfWriter.writeHeader(vcfFile.getFileHeader());
 
@@ -251,13 +251,13 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
 
     @Test(expectedExceptions = IllegalStateException.class)
     public void testWriteHeaderTwice() throws IOException {
-        final File bcfOutputFile = File.createTempFile("testWriteAndReadVCF.", ".bcf", tempDir);
-        bcfOutputFile.deleteOnExit();
+        final Path bcfOutputFile = Files.createTempFile(tempDir, "testWriteAndReadVCF.", ".bcf");
+        bcfOutputFile.toFile().deleteOnExit();
 
         final VCFHeader header = createFakeHeader();
         // prevent writing header twice
         try (final VariantContextWriter writer = new VariantContextWriterBuilder()
-                .setOutputFile(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
+                .setOutputPath(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
                 .unsetOption(Options.INDEX_ON_THE_FLY)
                 .build()) {
             writer.writeHeader(header);
@@ -267,13 +267,13 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
 
     @Test(expectedExceptions = IllegalStateException.class)
     public void testChangeHeaderAfterWritingHeader() throws IOException {
-        final File bcfOutputFile = File.createTempFile("testWriteAndReadVCF.", ".bcf", tempDir);
-        bcfOutputFile.deleteOnExit();
+        final Path bcfOutputFile = Files.createTempFile(tempDir, "testWriteAndReadVCF.", ".bcf");
+        bcfOutputFile.toFile().deleteOnExit();
 
         final VCFHeader header = createFakeHeader();
         // prevent changing header if it's already written
         try (final VariantContextWriter writer = new VariantContextWriterBuilder()
-                .setOutputFile(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
+                .setOutputPath(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
                 .unsetOption(Options.INDEX_ON_THE_FLY)
                 .build()) {
             writer.writeHeader(header);
@@ -283,13 +283,13 @@ public class BCF2WriterUnitTest extends VariantBaseTest {
 
     @Test(expectedExceptions = IllegalStateException.class)
     public void testChangeHeaderAfterWritingBody() throws IOException {
-        final File bcfOutputFile = File.createTempFile("testWriteAndReadVCF.", ".bcf", tempDir);
-        bcfOutputFile.deleteOnExit();
+        final Path bcfOutputFile = Files.createTempFile(tempDir, "testWriteAndReadVCF.", ".bcf");
+        bcfOutputFile.toFile().deleteOnExit();
 
         final VCFHeader header = createFakeHeader();
         // prevent changing header if part of body is already written
         try (final VariantContextWriter writer = new VariantContextWriterBuilder()
-                .setOutputFile(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
+                .setOutputPath(bcfOutputFile).setReferenceDictionary(header.getSequenceDictionary())
                 .unsetOption(Options.INDEX_ON_THE_FLY)
                 .build()) {
             writer.setHeader(header);

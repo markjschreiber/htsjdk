@@ -52,10 +52,9 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.testng.Assert;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -88,15 +87,15 @@ public class VariantContextTestProvider extends HtsjdkTest {
     final static List<VariantContextTestData> TEST_DATAs = new ArrayList<>();
     private static VariantContext ROOT;
 
-    private final static List<File> testSourceVCFs = new ArrayList<>();
+    private final static List<Path> testSourceVCFs = new ArrayList<>();
     static {
-        testSourceVCFs.add(new File(VariantBaseTest.variantTestDataRoot + "ILLUMINA.wex.broad_phase2_baseline.20111114.both.exome.genotypes.1000.vcf"));
-        testSourceVCFs.add(new File(VariantBaseTest.variantTestDataRoot + "ex2.vcf"));
-        testSourceVCFs.add(new File(VariantBaseTest.variantTestDataRoot + "dbsnp_135.b37.1000.vcf"));
+        testSourceVCFs.add(Path.of(VariantBaseTest.variantTestDataRoot + "ILLUMINA.wex.broad_phase2_baseline.20111114.both.exome.genotypes.1000.vcf"));
+        testSourceVCFs.add(Path.of(VariantBaseTest.variantTestDataRoot + "ex2.vcf"));
+        testSourceVCFs.add(Path.of(VariantBaseTest.variantTestDataRoot + "dbsnp_135.b37.1000.vcf"));
         if ( ENABLE_SYMBOLIC_ALLELE_TESTS ) {
-            testSourceVCFs.add(new File(VariantBaseTest.variantTestDataRoot + "diagnosis_targets_testfile.vcf"));
-            testSourceVCFs.add(new File(VariantBaseTest.variantTestDataRoot + "VQSR.mixedTest.recal"));
-            testSourceVCFs.add(new File(VariantBaseTest.variantTestDataRoot + "breakpoint.vcf"));
+            testSourceVCFs.add(Path.of(VariantBaseTest.variantTestDataRoot + "diagnosis_targets_testfile.vcf"));
+            testSourceVCFs.add(Path.of(VariantBaseTest.variantTestDataRoot + "VQSR.mixedTest.recal"));
+            testSourceVCFs.add(Path.of(VariantBaseTest.variantTestDataRoot + "breakpoint.vcf"));
         }
     }
 
@@ -124,9 +123,9 @@ public class VariantContextTestProvider extends HtsjdkTest {
         }
         public abstract String getExtension();
         public abstract CODECTYPE makeCodec();
-        public abstract VariantContextWriter makeWriter(final File outputFile, final EnumSet<Options> baseOptions);
+        public abstract VariantContextWriter makeWriter(final Path outputPath, final EnumSet<Options> baseOptions);
 
-        public abstract VariantContextContainer readAllVCs(final File input) throws IOException;
+        public abstract VariantContextContainer readAllVCs(final Path input) throws IOException;
         
         public List<VariantContext> preprocess(final VCFHeader header, List<VariantContext> vcsBeforeIO) {
             return vcsBeforeIO;
@@ -191,9 +190,9 @@ public class VariantContextTestProvider extends HtsjdkTest {
 
     private static void makeEmpiricalTests() throws IOException {
         if ( ENABLE_SOURCE_VCF_TESTS ) {
-            for ( final File file : testSourceVCFs ) {
+            for ( final Path path : testSourceVCFs ) {
                 VCFCodec codec = new VCFCodec();
-                VariantContextContainer x = readAllVCs( file, codec );
+                VariantContextContainer x = readAllVCs( path, codec );
                 List<VariantContext> fullyDecoded = new ArrayList<>();
 
                 for ( final VariantContext raw : x.getVCs() ) {
@@ -643,9 +642,9 @@ public class VariantContextTestProvider extends HtsjdkTest {
                     // cannot handle symbolic alleles because they may be weird non-call VCFs
                     return;
 
-            final File tmpFile = File.createTempFile("testReaderWriter", tester.getExtension());
-            tmpFile.deleteOnExit();
-            Tribble.indexFile(tmpFile).deleteOnExit();
+            final Path tmpFile = Files.createTempFile("testReaderWriter", tester.getExtension());
+            tmpFile.toFile().deleteOnExit();
+            Tribble.indexPath(tmpFile).toFile().deleteOnExit();
 
             // write expected to disk
             final EnumSet<Options> options = EnumSet.of(Options.INDEX_ON_THE_FLY);
@@ -690,9 +689,9 @@ public class VariantContextTestProvider extends HtsjdkTest {
                                         final List<VariantContext> expected,
                                         final Iterable<VariantContext> vcs,
                                         final boolean recurse) throws IOException {
-        final File tmpFile = File.createTempFile("testReaderWriter", tester.getExtension());
-        tmpFile.deleteOnExit();
-        Tribble.indexFile(tmpFile).deleteOnExit();
+        final Path tmpFile = Files.createTempFile("testReaderWriter", tester.getExtension());
+        tmpFile.toFile().deleteOnExit();
+        Tribble.indexPath(tmpFile).toFile().deleteOnExit();
 
         // write expected to disk
         final EnumSet<Options> options = EnumSet.of(Options.INDEX_ON_THE_FLY);
@@ -753,12 +752,12 @@ public class VariantContextTestProvider extends HtsjdkTest {
         public void remove() { }
     }
 
-    public static VariantContextContainer readAllVCs(final File input, final BCF2Codec codec) throws IOException {
-        PositionalBufferedStream headerPbs = new PositionalBufferedStream(new FileInputStream(input));
+    public static VariantContextContainer readAllVCs(final Path input, final BCF2Codec codec) throws IOException {
+        PositionalBufferedStream headerPbs = new PositionalBufferedStream(Files.newInputStream(input));
         FeatureCodecHeader header = codec.readHeader(headerPbs);
         headerPbs.close();
 
-        final PositionalBufferedStream pbs = new PositionalBufferedStream(new FileInputStream(input));
+        final PositionalBufferedStream pbs = new PositionalBufferedStream(Files.newInputStream(input));
         pbs.skip(header.getHeaderEnd());
 
         final VCFHeader vcfHeader = (VCFHeader)header.getHeaderValue();
@@ -779,8 +778,8 @@ public class VariantContextTestProvider extends HtsjdkTest {
         });
     }
 
-    public static VariantContextContainer readAllVCs(final File input, final VCFCodec codec) throws FileNotFoundException {
-        final LineIterator lineIterator = new LineIteratorImpl(new SynchronousLineReader(new BufferedInputStream(new FileInputStream(input))));
+    public static VariantContextContainer readAllVCs(final Path input, final VCFCodec codec) throws IOException {
+        final LineIterator lineIterator = new LineIteratorImpl(new SynchronousLineReader(new BufferedInputStream(Files.newInputStream(input))));
         final VCFHeader vcfHeader = (VCFHeader) codec.readActualHeader(lineIterator);
         return new VariantContextTestProvider.VariantContextContainer(vcfHeader, new VariantContextTestProvider.VCIterable<LineIterator>(codec, vcfHeader) {
             @Override
@@ -795,9 +794,9 @@ public class VariantContextTestProvider extends HtsjdkTest {
         });
     }
     
-    public static void assertVCFandBCFFilesAreTheSame(final File vcfFile, final File bcfFile) throws IOException {
-        final VariantContextContainer vcfData = readAllVCs(vcfFile, new VCFCodec());
-        final VariantContextContainer bcfData = readAllVCs(bcfFile, new BCF2Codec());
+    public static void assertVCFandBCFFilesAreTheSame(final Path vcfPath, final Path bcfPath) throws IOException {
+        final VariantContextContainer vcfData = readAllVCs(vcfPath, new VCFCodec());
+        final VariantContextContainer bcfData = readAllVCs(bcfPath, new BCF2Codec());
         assertEquals(bcfData.getHeader(), vcfData.getHeader());
         assertEquals(bcfData.getVCs(), vcfData.getVCs());
     }
@@ -1004,8 +1003,8 @@ public class VariantContextTestProvider extends HtsjdkTest {
     }
 
     public static void main( String argv[] ) {
-        final File variants1 = new File(argv[0]);
-        final File variants2 = new File(argv[1]);
+        final Path variants1 = Path.of(argv[0]);
+        final Path variants2 = Path.of(argv[1]);
         try {
             VariantContextTestProvider.assertVCFandBCFFilesAreTheSame(variants1, variants2);
         } catch ( IOException e ) {

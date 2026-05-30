@@ -7,16 +7,16 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class BAMFileReaderTest extends HtsjdkTest {
-    private final static File bamFile = new File("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
-    private final static File baiFileIndex = new File(bamFile.getPath() + ".bai");
-    private final static File csiFileIndex = new File(bamFile.getPath() + ".csi");
-    private final static File iiiFileIndex = new File(bamFile.getPath() + ".iii");
+    private final static Path bamFile = Path.of("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
+    private final static Path baiFileIndex = Path.of(bamFile.toString() + ".bai");
+    private final static Path csiFileIndex = Path.of(bamFile.toString() + ".csi");
+    private final static Path iiiFileIndex = Path.of(bamFile.toString() + ".iii");
     private final static int nofMappedReads = 9721;
     private final static int nofUnmappedReads = 279 ;
     private final static int noChrMReads = 23;
@@ -39,8 +39,8 @@ public class BAMFileReaderTest extends HtsjdkTest {
     @Test
     public static void testCSIFromURL() throws IOException {
         // https://github.com/samtools/htsjdk/issues/1507
-        final URL bamURL = Paths.get(bamFile.toURI()).toUri().toURL();
-        final URL csiURL = Paths.get(csiFileIndex.toURI()).toUri().toURL();
+        final URL bamURL = Paths.get(bamFile.toUri()).toUri().toURL();
+        final URL csiURL = Paths.get(csiFileIndex.toUri()).toUri().toURL();
         final SamInputResource resource = SamInputResource.of(bamURL).index(csiURL);
         final SamReaderFactory factory = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.SILENT);
         try (final SamReader samReader = factory.open(resource)) {

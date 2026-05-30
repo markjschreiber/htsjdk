@@ -54,7 +54,7 @@ public class SAMFileWriterFactory implements Cloneable {
     private boolean useAsyncIo = Defaults.USE_ASYNC_IO_WRITE_FOR_SAMTOOLS;
     private int asyncOutputBufferSize = AsyncSAMFileWriter.DEFAULT_QUEUE_SIZE;
     private int bufferSize = Defaults.BUFFER_SIZE;
-    private File tmpDir;
+    private Path tmpDir;
     /** compression level 0: min 9:max */
     private int compressionLevel = BlockCompressedOutputStream.getDefaultCompressionLevel();
     private SamFlagField samFlagFieldOutput = SamFlagField.NONE;
@@ -218,16 +218,16 @@ public class SAMFileWriterFactory implements Cloneable {
      *
      * @param tmpDir Path to the temporary directory
      */
-    public SAMFileWriterFactory setTempDirectory(final File tmpDir) {
+    public SAMFileWriterFactory setTempDirectory(final Path tmpDir) {
         this.tmpDir = tmpDir;
         return this;
     }
 
     /**
      * Gets the temporary directory that will be used when sorting data.
-     * @see #setTempDirectory(File)
+     * @see #setTempDirectory(Path)
      */
-    public File getTempDirectory() {
+    public Path getTempDirectory() {
         return tmpDir;
     }
 
@@ -246,17 +246,6 @@ public class SAMFileWriterFactory implements Cloneable {
      *
      * @param header     entire header. Sort order is determined by the sortOrder property of this arg.
      * @param presorted  if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
-     * @param outputFile where to write the output.
-     */
-    public SAMFileWriter makeBAMWriter(final SAMFileHeader header, final boolean presorted, final File outputFile) {
-        return makeBAMWriter(header, presorted, outputFile, this.getCompressionLevel());
-    }
-
-    /**
-     * Create a BAMFileWriter that is ready to receive SAMRecords.  Uses default compression level.
-     *
-     * @param header     entire header. Sort order is determined by the sortOrder property of this arg.
-     * @param presorted  if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
      * @param outputPath where to write the output.
      */
     public SAMFileWriter makeBAMWriter(final SAMFileHeader header, final boolean presorted, final Path outputPath) {
@@ -264,16 +253,27 @@ public class SAMFileWriterFactory implements Cloneable {
     }
 
     /**
-     * Create a BAMFileWriter that is ready to receive SAMRecords.
+     * Create a BAMFileWriter that is ready to receive SAMRecords from a URI.  Uses default compression level.
+     * <p>
+     * This is a convenience method that delegates to {@link #makeBAMWriter(SAMFileHeader, boolean, Path)} by converting the URI to a Path.
+     * The URI must be supported by an available NIO filesystem provider.
+     * </p>
      *
-     * @param header           entire header. Sort order is determined by the sortOrder property of this arg.
-     * @param presorted        if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
-     * @param outputFile       where to write the output.
-     * @param compressionLevel Override default compression level with the given value, between 0 (fastest) and 9 (smallest).
+     * @param header     entire header. Sort order is determined by the sortOrder property of this arg.
+     * @param presorted  if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
+     * @param outputUri  URI where to write the output (e.g., file:///path/to/file.bam)
+     * @return a SAMFileWriter for the specified URI
+     * @throws IOException if the URI cannot be converted to a Path
      */
-    public SAMFileWriter makeBAMWriter(final SAMFileHeader header, final boolean presorted, final File outputFile,
-                                       final int compressionLevel) {
-        return makeBAMWriter(header, presorted, outputFile.toPath(), compressionLevel);
+    public SAMFileWriter makeBAMWriter(final SAMFileHeader header, final boolean presorted, final java.net.URI outputUri) throws IOException {
+        try {
+            return makeBAMWriter(header, presorted, Path.of(outputUri));
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid URI: " + outputUri + ". Expected format: scheme://path", e);
+        } catch (java.nio.file.FileSystemNotFoundException e) {
+            throw new IOException("No filesystem provider for scheme: " + outputUri.getScheme() + 
+                                 ". Install the appropriate NIO SPI provider.", e);
+        }
     }
 
     /**
@@ -287,6 +287,15 @@ public class SAMFileWriterFactory implements Cloneable {
     public SAMFileWriter makeBAMWriter(final SAMFileHeader header, final boolean presorted, final Path outputPath,
         final int compressionLevel) {
         try {
+            // Check if parent directory exists and is writable
+            final Path parent = outputPath.toAbsolutePath().getParent();
+            if (parent != null && !Files.exists(parent)) {
+                throw new IOException("Parent directory does not exist: " + parent);
+            }
+            if (parent != null && !Files.isWritable(parent)) {
+                throw new IOException("Parent directory is not writable: " + parent);
+            }
+            
             final boolean createMd5File = this.createMd5File && IOUtil.isRegularPath(outputPath);
             if (this.createMd5File && !createMd5File) {
                 log.warn("Cannot create MD5 file for BAM because output file is not a regular file: " + outputPath.toUri());
@@ -303,7 +312,7 @@ public class SAMFileWriterFactory implements Cloneable {
             if (this.useAsyncIo) return new AsyncSAMFileWriter(ret, this.asyncOutputBufferSize);
             else return ret;
         } catch (final IOException ioe) {
-            throw new RuntimeIOException("Error opening file: " + outputPath.toUri(), ioe);
+            throw new RuntimeIOException("Error opening file: " + outputPath.toAbsolutePath(), ioe);
         }
     }
 
@@ -312,22 +321,11 @@ public class SAMFileWriterFactory implements Cloneable {
         if (maxRecordsInRam != null) {
             writer.setMaxRecordsInRam(maxRecordsInRam);
         }
-        if (this.tmpDir != null) writer.setTempDirectory(this.tmpDir);
+        if (this.tmpDir != null) writer.setTempDirectory(this.tmpDir.toFile());
         writer.setHeader(header);
         if (createIndex && writer.getSortOrder().equals(SAMFileHeader.SortOrder.coordinate)) {
             writer.enableBamIndexConstruction();
         }
-    }
-
-    /**
-     * Create a SAMTextWriter that is ready to receive SAMRecords.
-     *
-     * @param header     entire header. Sort order is determined by the sortOrder property of this arg.
-     * @param presorted  if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
-     * @param outputFile where to write the output.
-     */
-    public SAMFileWriter makeSAMWriter(final SAMFileHeader header, final boolean presorted, final File outputFile) {
-        return makeSAMWriter(header, presorted, outputFile.toPath());
     }
 
     /**
@@ -346,6 +344,15 @@ public class SAMFileWriterFactory implements Cloneable {
             samFlagFieldOutput = Defaults.SAM_FLAG_FIELD_FORMAT;
         }
         try {
+            // Check if parent directory exists and is writable
+            final Path parent = outputPath.toAbsolutePath().getParent();
+            if (parent != null && !Files.exists(parent)) {
+                throw new IOException("Parent directory does not exist: " + parent);
+            }
+            if (parent != null && !Files.isWritable(parent)) {
+                throw new IOException("Parent directory is not writable: " + parent);
+            }
+            
             final SAMTextWriter ret = this.createMd5File
                     ? new SAMTextWriter(new Md5CalculatingOutputStream(Files.newOutputStream(outputPath),
                           IOUtil.addExtension(outputPath, ".md5")), samFlagFieldOutput)
@@ -355,7 +362,31 @@ public class SAMFileWriterFactory implements Cloneable {
                                         samFlagFieldOutput);
             return initWriter(header, presorted, ret);
         } catch (final IOException ioe) {
-            throw new RuntimeIOException("Error opening file: " + outputPath.toUri(), ioe);
+            throw new RuntimeIOException("Error opening file: " + outputPath.toAbsolutePath(), ioe);
+        }
+    }
+
+    /**
+     * Create a SAMTextWriter that is ready to receive SAMRecords from a URI.
+     * <p>
+     * This is a convenience method that delegates to {@link #makeSAMWriter(SAMFileHeader, boolean, Path)} by converting the URI to a Path.
+     * The URI must be supported by an available NIO filesystem provider.
+     * </p>
+     *
+     * @param header     entire header. Sort order is determined by the sortOrder property of this arg.
+     * @param presorted  if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
+     * @param outputUri  URI where to write the output (e.g., file:///path/to/file.sam)
+     * @return a SAMFileWriter for the specified URI
+     * @throws IOException if the URI cannot be converted to a Path
+     */
+    public SAMFileWriter makeSAMWriter(final SAMFileHeader header, final boolean presorted, final java.net.URI outputUri) throws IOException {
+        try {
+            return makeSAMWriter(header, presorted, Path.of(outputUri));
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid URI: " + outputUri + ". Expected format: scheme://path", e);
+        } catch (java.nio.file.FileSystemNotFoundException e) {
+            throw new IOException("No filesystem provider for scheme: " + outputUri.getScheme() + 
+                                 ". Install the appropriate NIO SPI provider.", e);
         }
     }
 
@@ -390,7 +421,7 @@ public class SAMFileWriterFactory implements Cloneable {
      */
 
     public SAMFileWriter makeBAMWriter(final SAMFileHeader header, final boolean presorted, final OutputStream stream) {
-        return initWriter(header, presorted, new BAMFileWriter(stream, (File)null, this.getCompressionLevel(), this.deflaterFactory));
+        return initWriter(header, presorted, new BAMFileWriter(stream, (String)null, this.getCompressionLevel(), this.deflaterFactory));
     }
 
     /**
@@ -406,23 +437,11 @@ public class SAMFileWriterFactory implements Cloneable {
         if (maxRecordsInRam != null) {
             writer.setMaxRecordsInRam(maxRecordsInRam);
         }
-        if (this.tmpDir != null) writer.setTempDirectory(this.tmpDir);
+        if (this.tmpDir != null) writer.setTempDirectory(this.tmpDir.toFile());
         writer.setHeader(header);
 
         if (this.useAsyncIo) return new AsyncSAMFileWriter(writer, this.asyncOutputBufferSize);
         else return writer;
-    }
-
-    /**
-     * Create either a SAM or a BAM writer based on examination of the outputFile extension, defaults to BAM writer.
-     *
-     * @param header     entire header. Sort order is determined by the sortOrder property of this arg.
-     * @param presorted  presorted if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
-     * @param outputFile where to write the output.  Must end with .sam or .bam.
-     * @return SAM or BAM writer based on file extension of outputFile.
-     */
-    public SAMFileWriter makeSAMOrBAMWriter(final SAMFileHeader header, final boolean presorted, final File outputFile) {
-       return makeSAMOrBAMWriter(header, presorted, outputFile.toPath());
     }
 
     /**
@@ -446,35 +465,27 @@ public class SAMFileWriterFactory implements Cloneable {
     }
 
     /**
+     * Create either a SAM or a BAM writer based on examination of the URI extension.
+     * <p>
+     * This is a convenience method that delegates to {@link #makeSAMOrBAMWriter(SAMFileHeader, boolean, Path)} by converting the URI to a Path.
+     * The URI must be supported by an available NIO filesystem provider.
+     * </p>
      *
-     * Create a SAM, BAM or CRAM writer based on examination of the outputFile extension.
-     * The method assumes BAM file format for unknown file extensions.
-     *
-     * @param header header. Sort order is determined by the sortOrder property of this arg.
-     * @param presorted if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
-     * @param outputFile where to write the output.  Should end with .sam, .bam or .cram.
-     * @param referenceFasta reference sequence file
-     * @return SAMFileWriter appropriate for SAM and CRAM file types specified in outputFile, or a BAM writer for all other types
-     *
+     * @param header     entire header. Sort order is determined by the sortOrder property of this arg.
+     * @param presorted  presorted if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
+     * @param outputUri  URI where to write the output (e.g., file:///path/to/file.sam or file:///path/to/file.bam)
+     * @return SAM or BAM writer based on file extension of outputUri
+     * @throws IOException if the URI cannot be converted to a Path
      */
-    public SAMFileWriter makeWriter(final SAMFileHeader header, final boolean presorted, final File outputFile, final File referenceFasta) {
-        return makeWriter(header, presorted, IOUtil.toPath( outputFile ), IOUtil.toPath(referenceFasta));
-    }
-
-    /**
-     *
-     * Create a SAM, BAM or CRAM writer based on examination of the outputPath extension.
-     *
-     * @param header header. Sort order is determined by the sortOrder property of this arg.
-     * @param presorted if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
-     * @param outputPath where to write the output.  Must end with .sam, .bam or .cram.
-     * @param referenceFasta reference sequence file
-     * @return SAMFileWriter appropriate for the file type specified in outputPath
-     * @deprecated since 6/18, use {@link #makeWriter(SAMFileHeader, boolean, Path, Path)} instead
-     */
-    @Deprecated
-    public SAMFileWriter makeWriter(final SAMFileHeader header, final boolean presorted, final Path outputPath, final File referenceFasta) {
-        return makeWriter(header, presorted, outputPath, IOUtil.toPath( referenceFasta ));
+    public SAMFileWriter makeSAMOrBAMWriter(final SAMFileHeader header, final boolean presorted, final java.net.URI outputUri) throws IOException {
+        try {
+            return makeSAMOrBAMWriter(header, presorted, Path.of(outputUri));
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid URI: " + outputUri + ". Expected format: scheme://path", e);
+        } catch (java.nio.file.FileSystemNotFoundException e) {
+            throw new IOException("No filesystem provider for scheme: " + outputUri.getScheme() + 
+                                 ". Install the appropriate NIO SPI provider.", e);
+        }
     }
 
     /**
@@ -498,18 +509,29 @@ public class SAMFileWriterFactory implements Cloneable {
     }
 
     /**
-     * Create a CRAMFileWriter on an output stream. Requires the input to be presorted to match the sort order defined
-     * by the input header.
+     * Create a SAM, BAM or CRAM writer based on examination of the URI extension.
+     * <p>
+     * This is a convenience method that delegates to {@link #makeWriter(SAMFileHeader, boolean, Path, Path)} by converting the URIs to Paths.
+     * The URIs must be supported by an available NIO filesystem provider.
+     * </p>
      *
-     * Note: does not honor factory settings for CREATE_MD5, CREATE_INDEX, USE_ASYNC_IO.
-     *
-     * @param header entire header. Sort order is determined by the sortOrder property of this arg.
-     * @param stream where to write the output.
-     * @param referenceFasta reference sequence file
-     * @return CRAMFileWriter
+     * @param header header. Sort order is determined by the sortOrder property of this arg.
+     * @param presorted if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
+     * @param outputUri URI where to write the output (e.g., file:///path/to/file.sam, file:///path/to/file.bam, or file:///path/to/file.cram)
+     * @param referenceUri URI of the reference sequence file
+     * @return SAMFileWriter appropriate for the file type specified in outputUri
+     * @throws IOException if the URI cannot be converted to a Path
      */
-    public CRAMFileWriter makeCRAMWriter(final SAMFileHeader header, final OutputStream stream, final File referenceFasta) {
-        return makeCRAMWriter(header, stream, IOUtil.toPath( referenceFasta ));
+    public SAMFileWriter makeWriter(final SAMFileHeader header, final boolean presorted, final java.net.URI outputUri, final java.net.URI referenceUri) throws IOException {
+        try {
+            final Path outputPath = Path.of(outputUri);
+            final Path referencePath = referenceUri != null ? Path.of(referenceUri) : null;
+            return makeWriter(header, presorted, outputPath, referencePath);
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid URI: " + outputUri + " or " + referenceUri + ". Expected format: scheme://path", e);
+        } catch (java.nio.file.FileSystemNotFoundException e) {
+            throw new IOException("No filesystem provider for scheme. Install the appropriate NIO SPI provider.", e);
+        }
     }
 
     /**
@@ -529,78 +551,6 @@ public class SAMFileWriterFactory implements Cloneable {
     }
 
     /**
-     * Create a CRAMFileWriter on an output file. Requires input record to be presorted to match the
-     * sort order defined by the input header.
-     *
-     * Note: does not honor factory settings for USE_ASYNC_IO.
-     *
-     * @param header entire header. Sort order is determined by the sortOrder property of this arg.
-     * @param outputFile where to write the output.  Must end with .sam, .bam or .cram.
-     * @param referenceFasta reference sequence file
-     * @return CRAMFileWriter
-     *
-     */
-    public CRAMFileWriter makeCRAMWriter(final SAMFileHeader header, final File outputFile, final File referenceFasta) {
-        return createCRAMWriterWithSettings(header, true, outputFile.toPath(), IOUtil.toPath( referenceFasta ));
-    }
-
-    /**
-     * Create a CRAMFileWriter on an output file. Requires input record to be presorted to match the
-     * sort order defined by the input header.
-     *
-     * Note: does not honor factory settings for USE_ASYNC_IO.
-     *
-     * @param header entire header. Sort order is determined by the sortOrder property of this arg.
-     * @param outputPath where to write the output.  Must end with .sam, .bam or .cram.
-     * @param referenceFasta reference sequence file
-     * @return CRAMFileWriter
-     *
-     * @deprecated since 6/18, prefer {@link #makeWriter(SAMFileHeader, boolean, Path, Path)} for creating bam/cram writers
-     * however {@link #makeCRAMWriter(SAMFileHeader, boolean, Path, Path)} is the direct replacement for this method
-     */
-    @Deprecated
-    public CRAMFileWriter makeCRAMWriter(final SAMFileHeader header, final Path outputPath, final File referenceFasta) {
-        return makeCRAMWriter(header, true, outputPath, IOUtil.toPath( referenceFasta ));
-    }
-
-    /**
-     * Create a CRAMFileWriter on an output file.
-     *
-     * Note: does not honor factory setting for USE_ASYNC_IO.
-     *
-     * @param header entire header. Sort order is determined by the sortOrder property of this arg.
-     * @param presorted  if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
-     * @param outputFile where to write the output.  Must end with .sam, .bam or .cram.
-     * @param referenceFasta reference sequence file
-     * @return CRAMFileWriter
-     *
-     */
-    public CRAMFileWriter makeCRAMWriter(final SAMFileHeader header, final boolean presorted, final File outputFile, final File referenceFasta) {
-        return makeCRAMWriter(header, presorted, outputFile.toPath(),  IOUtil.toPath(referenceFasta));
-    }
-
-
-    /**
-     * Create a CRAMFileWriter on an output file.
-     *
-     * Note: does not honor factory setting for USE_ASYNC_IO.
-     *
-     * @param header entire header. Sort order is determined by the sortOrder property of this arg.
-     * @param presorted  if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
-     * @param output where to write the output.  Must end with .sam, .bam or .cram.
-     * @param referenceFasta reference sequence file
-     * @return CRAMFileWriter
-     *
-     * @deprecated since 6/18, prefer {@link #makeWriter(SAMFileHeader, boolean, Path, Path)} for creating bam/cram writers
-     * however {@link #makeCRAMWriter(SAMFileHeader, boolean, Path, Path)} is the direct replacement for this method
-     *
-     */
-    @Deprecated
-    public CRAMFileWriter makeCRAMWriter(final SAMFileHeader header, final boolean presorted, final Path output, final File referenceFasta) {
-        return makeCRAMWriter(header, presorted, output, IOUtil.toPath( referenceFasta ));
-    }
-
-    /**
      * Create a CRAMFileWriter on an output file.
      *
      * Note: does not honor factory setting for USE_ASYNC_IO.
@@ -614,6 +564,34 @@ public class SAMFileWriterFactory implements Cloneable {
      */
     public CRAMFileWriter makeCRAMWriter(final SAMFileHeader header, final boolean presorted, final Path output, final Path referenceFasta) {
         return createCRAMWriterWithSettings(header, presorted, output, referenceFasta);
+    }
+
+    /**
+     * Create a CRAMFileWriter on an output file from a URI.
+     * <p>
+     * This is a convenience method that delegates to {@link #makeCRAMWriter(SAMFileHeader, boolean, Path, Path)} by converting the URIs to Paths.
+     * The URIs must be supported by an available NIO filesystem provider.
+     * </p>
+     *
+     * Note: does not honor factory setting for USE_ASYNC_IO.
+     *
+     * @param header entire header. Sort order is determined by the sortOrder property of this arg.
+     * @param presorted  if true, SAMRecords must be added to the SAMFileWriter in order that agrees with header.sortOrder.
+     * @param outputUri URI where to write the output (e.g., file:///path/to/file.cram)
+     * @param referenceUri URI of the reference sequence file
+     * @return CRAMFileWriter
+     * @throws IOException if the URI cannot be converted to a Path
+     */
+    public CRAMFileWriter makeCRAMWriter(final SAMFileHeader header, final boolean presorted, final java.net.URI outputUri, final java.net.URI referenceUri) throws IOException {
+        try {
+            final Path outputPath = Path.of(outputUri);
+            final Path referencePath = referenceUri != null ? Path.of(referenceUri) : null;
+            return makeCRAMWriter(header, presorted, outputPath, referencePath);
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid URI: " + outputUri + " or " + referenceUri + ". Expected format: scheme://path", e);
+        } catch (java.nio.file.FileSystemNotFoundException e) {
+            throw new IOException("No filesystem provider for scheme. Install the appropriate NIO SPI provider.", e);
+        }
     }
 
     /**
@@ -663,9 +641,18 @@ public class SAMFileWriterFactory implements Cloneable {
         }
 
         try {
+            // Check if parent directory exists and is writable
+            final Path parent = outputFile.toAbsolutePath().getParent();
+            if (parent != null && !Files.exists(parent)) {
+                throw new IOException("Parent directory does not exist: " + parent);
+            }
+            if (parent != null && !Files.isWritable(parent)) {
+                throw new IOException("Parent directory is not writable: " + parent);
+            }
+            
             cramOS = IOUtil.maybeBufferOutputStream(Files.newOutputStream(outputFile), bufferSize);
         } catch (final IOException ioe) {
-            throw new RuntimeIOException("Error creating CRAM file: " + outputFile.toUri(), ioe);
+            throw new RuntimeIOException("Error creating CRAM file: " + outputFile.toAbsolutePath(), ioe);
         }
 
         final Path md5Path = IOUtil.addExtension(outputFile, ".md5");

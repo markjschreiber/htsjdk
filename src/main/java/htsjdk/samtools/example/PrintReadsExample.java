@@ -26,9 +26,9 @@ import htsjdk.samtools.*;
 import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.ProgressLogger;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,9 +55,9 @@ public final class PrintReadsExample {
             System.out.println("Usage: " + PrintReadsExample.class.getCanonicalName() + " inFile eagerDecode [outFile]");
             System.exit(1);
         }
-        final File inputFile = new File(args[0]);
+        final Path inputFile = Path.of(args[0]);
         final boolean eagerDecode = Boolean.parseBoolean(args[1]); //useful to test (realistic) scenarios in which every record is always fully decoded.
-        final File outputFile = args.length >= 3 ? new File(args[2]) : null;
+        final Path outputFile = args.length >= 3 ? Path.of(args[2]) : null;
 
         final long start = System.currentTimeMillis();
 

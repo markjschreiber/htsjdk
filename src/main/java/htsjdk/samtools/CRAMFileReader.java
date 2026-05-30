@@ -20,11 +20,14 @@ import htsjdk.samtools.SamReader.Type;
 import htsjdk.samtools.cram.ref.CRAMReferenceSource;
 import htsjdk.samtools.cram.ref.ReferenceSource;
 import htsjdk.samtools.seekablestream.SeekableFileStream;
+import htsjdk.samtools.seekablestream.SeekablePathStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.util.*;
 import htsjdk.utils.ValidationUtils;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
@@ -36,13 +39,13 @@ import java.util.NoSuchElementException;
  * @author vadim
  */
 public class CRAMFileReader extends SamReader.ReaderImplementation implements SamReader.Indexing, AutoCloseable {
-    private File cramFile;
+    private Path cramPath;
     private final CRAMReferenceSource referenceSource;
     private InputStream inputStream;
     private DeferredCloseSeekableStream deferredCloseSeekableStream;
     private CRAMIterator iterator;
     private BAMIndex mIndex;
-    private File mIndexFile;
+    private Path mIndexPath;
     private boolean mEnableIndexCaching;
     private boolean mEnableIndexMemoryMapping;
 
@@ -51,82 +54,82 @@ public class CRAMFileReader extends SamReader.ReaderImplementation implements Sa
     private final static Log log = Log.getInstance(CRAMFileReader.class);
 
     /**
-     * Create a CRAMFileReader from either a file or input stream using the reference source returned by
+     * Create a CRAMFileReader from either a path or input stream using the reference source returned by
      * {@link ReferenceSource#getDefaultCRAMReferenceSource() getDefaultCRAMReferenceSource}.
      *
-     * @param cramFile CRAM file to open
+     * @param cramPath CRAM file path to open
      * @param inputStream CRAM stream to read
      *
-     * @throws IllegalArgumentException if the {@code cramFile} and the {@code inputStream} are both null
+     * @throws IllegalArgumentException if the {@code cramPath} and the {@code inputStream} are both null
      * @throws IllegalStateException if a {@link ReferenceSource#getDefaultCRAMReferenceSource() default}
      * reference source cannot be acquired
      */
-    public CRAMFileReader(final File cramFile, final InputStream inputStream) {
-        this(cramFile, inputStream, ReferenceSource.getDefaultCRAMReferenceSource());
+    public CRAMFileReader(final Path cramPath, final InputStream inputStream) {
+        this(cramPath, inputStream, ReferenceSource.getDefaultCRAMReferenceSource());
     }
 
     /**
-     * Create a CRAMFileReader from either a file or input stream using the supplied reference source.
+     * Create a CRAMFileReader from either a path or input stream using the supplied reference source.
      *
-     * @param cramFile        CRAM file to read
+     * @param cramPath        CRAM file path to read
      * @param inputStream     CRAM stream to read
      * @param referenceSource a {@link htsjdk.samtools.cram.ref.ReferenceSource source} of
      *                        reference sequences. May not be null.
      *
-     * @throws IllegalArgumentException if the {@code cramFile} and the {@code inputStream} are both null
+     * @throws IllegalArgumentException if the {@code cramPath} and the {@code inputStream} are both null
      * or if the {@code CRAMReferenceSource} is null
      */
-    public CRAMFileReader(final File cramFile,
+    public CRAMFileReader(final Path cramPath,
                           final InputStream inputStream,
                           final CRAMReferenceSource referenceSource) {
-        ValidationUtils.validateArg(cramFile != null || inputStream != null,
-                "Either file or input stream is required.");
+        ValidationUtils.validateArg(cramPath != null || inputStream != null,
+                "Either path or input stream is required.");
 
-        this.cramFile = cramFile;
+        this.cramPath = cramPath;
         this.inputStream = new BufferedInputStream(inputStream);
         this.referenceSource = referenceSource;
-        if (cramFile != null) {
-            mIndexFile = findIndexForFile(null, cramFile);
+        if (cramPath != null) {
+            mIndexPath = findIndexForPath(null, cramPath);
         }
         getIterator();
     }
 
     /**
-     * Create a CRAMFileReader from a file and optional index file using the supplied reference source. If index file
+     * Create a CRAMFileReader from a path and optional index path using the supplied reference source. If index path
      * is supplied then random access will be available.
      *
-     * @param cramFile        CRAM file to read. May not be null.
-     * @param indexFile       index file to be used for random access. May be null.
+     * @param cramPath        CRAM file path to read. May not be null.
+     * @param indexPath       index file path to be used for random access. May be null.
      * @param referenceSource a {@link htsjdk.samtools.cram.ref.CRAMReferenceSource source} of
      *                        reference sequences. May not be null.
-     * @throws IllegalArgumentException if the {@code cramFile} or the {@code CRAMReferenceSource} is null
+     * @throws IllegalArgumentException if the {@code cramPath} or the {@code CRAMReferenceSource} is null
      */
-    public CRAMFileReader(final File cramFile,
-                          final File indexFile,
+    public CRAMFileReader(final Path cramPath,
+                          final Path indexPath,
                           final CRAMReferenceSource referenceSource) {
-        ValidationUtils.nonNull(cramFile,"File is required.");
+        ValidationUtils.nonNull(cramPath,"Path is required.");
 
-        this.cramFile = cramFile;
-        mIndexFile = findIndexForFile(indexFile, cramFile);
+        this.cramPath = cramPath;
+        mIndexPath = findIndexForPath(indexPath, cramPath);
         this.referenceSource = referenceSource;
 
         getIterator();
     }
 
     /**
-     * Create a CRAMFileReader from a file using the supplied reference source.
+     * Create a CRAMFileReader from a path using the supplied reference source.
      *
-     * @param cramFile        CRAM file to read. Can not be null.
+     * @param cramPath        CRAM file path to read. Can not be null.
      * @param referenceSource a {@link htsjdk.samtools.cram.ref.CRAMReferenceSource source} of
      *                        reference sequences. May not be null.
-     * @throws IllegalArgumentException if the {@code cramFile} or the {@code CRAMReferenceSource} is null
+     * @throws IllegalArgumentException if the {@code cramPath} or the {@code CRAMReferenceSource} is null
      */
-    public CRAMFileReader(final File cramFile, final CRAMReferenceSource referenceSource) {
-        ValidationUtils.nonNull(cramFile,"File is required.");
+    public CRAMFileReader(final Path cramPath, final CRAMReferenceSource referenceSource) {
+        ValidationUtils.nonNull(cramPath,"Path is required.");
 
-        this.cramFile = cramFile;
+        this.cramPath = cramPath;
         this.referenceSource = referenceSource;
-        mIndexFile = findIndexForFile(null, cramFile);
+        mIndexPath = findIndexForPath(null, cramPath);
 
         getIterator();
     }
@@ -153,11 +156,11 @@ public class CRAMFileReader extends SamReader.ReaderImplementation implements Sa
     }
 
     /**
-     * Create a CRAMFileReader from an input stream and optional index file using the supplied reference
+     * Create a CRAMFileReader from an input stream and optional index path using the supplied reference
      * source and validation stringency.
      *
      * @param stream            CRAM stream to read. May not be null.
-     * @param indexFile         index file to be used for random access. May be null.
+     * @param indexPath         index file path to be used for random access. May be null.
      * @param referenceSource a {@link htsjdk.samtools.cram.ref.CRAMReferenceSource source} of
      *                        reference sequences. May not be null.
      * @param validationStringency Validation stringency to be used when reading
@@ -165,33 +168,41 @@ public class CRAMFileReader extends SamReader.ReaderImplementation implements Sa
      * @throws IllegalArgumentException if the {@code inputStream} or the {@code CRAMReferenceSource} is null
      */
     public CRAMFileReader(final InputStream stream,
-                          final File indexFile,
+                          final Path indexPath,
                           final CRAMReferenceSource referenceSource,
                           final ValidationStringency validationStringency) throws IOException {
-        this(stream, indexFile == null ? null : new SeekableFileStream(indexFile), referenceSource, validationStringency);
+        this(stream, indexPath == null ? null : new SeekablePathStream(indexPath), referenceSource, validationStringency);
     }
 
     /**
-     * Create a CRAMFileReader from a CRAM file and optional index file using the supplied reference
+     * Create a CRAMFileReader from a CRAM path and optional index path using the supplied reference
      * source and validation stringency.
      *
-     * @param cramFile        CRAM stream to read. May not be null.
-     * @param indexFile       index file to be used for random access. May be null.
+     * @param cramPath        CRAM path to read. May not be null.
+     * @param indexPath       index file path to be used for random access. May be null.
      * @param referenceSource a {@link htsjdk.samtools.cram.ref.CRAMReferenceSource source} of
      *                        reference sequences. May not be null.
      * @param validationStringency Validation stringency to be used when reading
      *
-     * @throws IllegalArgumentException if the {@code cramFile} or the {@code CRAMReferenceSource} is null
+     * @throws IllegalArgumentException if the {@code cramPath} or the {@code CRAMReferenceSource} is null
      */
-    public CRAMFileReader(final File cramFile, final File indexFile, final CRAMReferenceSource referenceSource,
+    public CRAMFileReader(final Path cramPath, final Path indexPath, final CRAMReferenceSource referenceSource,
                           final ValidationStringency validationStringency) throws IOException {
-        ValidationUtils.nonNull(cramFile, "Input file can not be null for CRAM reader");
+        ValidationUtils.nonNull(cramPath, "Input path can not be null for CRAM reader");
+        
+        // Check if the file exists and is readable before attempting to open
+        if (!Files.exists(cramPath)) {
+            throw new IOException("CRAM file not found: " + cramPath.toAbsolutePath());
+        }
+        if (!Files.isReadable(cramPath)) {
+            throw new IOException("CRAM file is not readable (permission denied): " + cramPath.toAbsolutePath());
+        }
 
-        this.cramFile = cramFile;
+        this.cramPath = cramPath;
         this.referenceSource = referenceSource;
-        this.mIndexFile = findIndexForFile(indexFile, cramFile);
-        final SeekableFileStream indexStream = this.mIndexFile == null ? null : new SeekableFileStream(this.mIndexFile);
-        initWithStreams(new BufferedInputStream(new FileInputStream(cramFile)), indexStream, validationStringency);
+        this.mIndexPath = findIndexForPath(indexPath, cramPath);
+        final SeekablePathStream indexStream = this.mIndexPath == null ? null : new SeekablePathStream(this.mIndexPath);
+        initWithStreams(new BufferedInputStream(Files.newInputStream(cramPath)), indexStream, validationStringency);
     }
 
     private void initWithStreams(final InputStream inputStream, final SeekableStream indexInputStream,
@@ -210,13 +221,19 @@ public class CRAMFileReader extends SamReader.ReaderImplementation implements Sa
         }
     }
 
-    private File findIndexForFile(File indexFile, final File cramFile) {
-        indexFile = indexFile == null ? SamFiles.findIndex(cramFile) : indexFile;
-        if (indexFile != null && indexFile.lastModified() < cramFile.lastModified()) {
-            log.warn("CRAM index file " + indexFile.getAbsolutePath() +
-                    " is older than CRAM " + cramFile.getAbsolutePath());
+    private Path findIndexForPath(Path indexPath, final Path cramPath) {
+        indexPath = indexPath == null ? SamFiles.findIndex(cramPath) : indexPath;
+        if (indexPath != null) {
+            try {
+                if (Files.getLastModifiedTime(indexPath).toMillis() < Files.getLastModifiedTime(cramPath).toMillis()) {
+                    log.warn("CRAM index file " + indexPath.toAbsolutePath() +
+                            " is older than CRAM " + cramPath.toAbsolutePath());
+                }
+            } catch (IOException e) {
+                log.warn("Could not check modification times for " + indexPath + " and " + cramPath);
+            }
         }
-        return indexFile;
+        return indexPath;
     }
 
     @Override
@@ -242,7 +259,7 @@ public class CRAMFileReader extends SamReader.ReaderImplementation implements Sa
 
     @Override
     public boolean hasIndex() {
-        return mIndex != null || mIndexFile != null;
+        return mIndex != null || mIndexPath != null;
     }
 
     @Override
@@ -252,19 +269,20 @@ public class CRAMFileReader extends SamReader.ReaderImplementation implements Sa
         }
         if (mIndex == null) {
             final SAMSequenceDictionary dictionary = getFileHeader().getSequenceDictionary();
-            if (mIndexFile.getName().endsWith(FileExtensions.BAI_INDEX)) {
+            final String fileName = mIndexPath.getFileName().toString();
+            if (fileName.endsWith(FileExtensions.BAI_INDEX)) {
                 mIndex = mEnableIndexCaching ?
-                        new CachingBAMFileIndex(mIndexFile, dictionary, mEnableIndexMemoryMapping) :
-                        new DiskBasedBAMFileIndex(mIndexFile, dictionary, mEnableIndexMemoryMapping);
+                        new CachingBAMFileIndex(mIndexPath, dictionary, mEnableIndexMemoryMapping) :
+                        new DiskBasedBAMFileIndex(mIndexPath, dictionary, mEnableIndexMemoryMapping);
                 return mIndex;
             }
 
-            if (!mIndexFile.getName().endsWith(FileExtensions.CRAM_INDEX)) return null;
+            if (!fileName.endsWith(FileExtensions.CRAM_INDEX)) return null;
             // convert CRAI into BAI:
             final SeekableStream baiStream;
             try {
                 baiStream = SamIndexes.asBaiSeekableStreamOrNull(
-                        new SeekableFileStream(mIndexFile),
+                        new SeekablePathStream(mIndexPath),
                         iterator.getSAMFileHeader().getSequenceDictionary());
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -301,12 +319,12 @@ public class CRAMFileReader extends SamReader.ReaderImplementation implements Sa
 
     @Override
     public SAMRecordIterator getIterator() {
-        if (iterator != null && cramFile == null) {
+        if (iterator != null && cramPath == null) {
             return iterator;
         }
         try {
-            if (cramFile != null) {
-                iterator = new CRAMIterator(new BufferedInputStream(new FileInputStream(cramFile)), referenceSource, validationStringency);
+            if (cramPath != null) {
+                iterator = new CRAMIterator(new BufferedInputStream(Files.newInputStream(cramPath)), referenceSource, validationStringency);
             } else {
                 iterator = new CRAMIterator(inputStream, referenceSource, validationStringency);
             }
@@ -389,16 +407,16 @@ public class CRAMFileReader extends SamReader.ReaderImplementation implements Sa
     private SeekableStream getSeekableStreamOrFailWithRTE() {
         SeekableStream seekableStream = null;
 
-        if (cramFile != null) {
+        if (cramPath != null) {
             try {
-                // If this reader was provided with a File, create a SeekableStream directly and
+                // If this reader was provided with a Path, create a SeekableStream directly and
                 // let it be closed by CloseableIterators, and then recreated on demand.
-                seekableStream = new SeekableFileStream(cramFile);
-            } catch (final FileNotFoundException e) {
+                seekableStream = new SeekablePathStream(cramPath);
+            } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
         } else if (inputStream != null && inputStream instanceof SeekableStream) {
-            // For SeekableStreams that were provided to the reader constructor instead of a File, we
+            // For SeekableStreams that were provided to the reader constructor instead of a Path, we
             // need to prevent CloseableIterators from closing the underlying stream since we can't
             // reconstitute a SeekableStream from an InputStream. So wrap the underlying SeekableStream
             // in a DeferredCloseSeekableStream with a no-op close implementation, and defer closing it

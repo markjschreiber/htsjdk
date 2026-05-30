@@ -42,7 +42,6 @@ import htsjdk.samtools.util.FileExtensions;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.utils.ValidationUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -76,33 +75,46 @@ public class ReferenceSequenceFileFactory {
      * of ReferenceSequenceFile that is appropriate to read it.  Sequence names
      * will be truncated at first whitespace, if any.
      *
-     * @param file the reference sequence file on disk
+     * @param uri the URI of the reference sequence file
+     * @return a ReferenceSequenceFile instance
+     * @throws IOException if the URI is malformed or the file cannot be accessed
      */
-    public static ReferenceSequenceFile getReferenceSequenceFile(final File file) {
-        return getReferenceSequenceFile(file, true);
+    public static ReferenceSequenceFile getReferenceSequenceFile(final java.net.URI uri) throws IOException {
+        return getReferenceSequenceFile(uri, true);
     }
 
     /**
      * Attempts to determine the type of the reference file and return an instance
      * of ReferenceSequenceFile that is appropriate to read it.
      *
-     * @param file the reference sequence file on disk
+     * @param uri the URI of the reference sequence file
      * @param truncateNamesAtWhitespace if true, only include the first word of the sequence name
+     * @return a ReferenceSequenceFile instance
+     * @throws IOException if the URI is malformed or the file cannot be accessed
      */
-    public static ReferenceSequenceFile getReferenceSequenceFile(final File file, final boolean truncateNamesAtWhitespace) {
-        return getReferenceSequenceFile(file, truncateNamesAtWhitespace, true);
+    public static ReferenceSequenceFile getReferenceSequenceFile(final java.net.URI uri, final boolean truncateNamesAtWhitespace) throws IOException {
+        return getReferenceSequenceFile(uri, truncateNamesAtWhitespace, true);
     }
 
     /**
      * Attempts to determine the type of the reference file and return an instance
      * of ReferenceSequenceFile that is appropriate to read it.
      *
-     * @param file the reference sequence file on disk
+     * @param uri the URI of the reference sequence file
      * @param truncateNamesAtWhitespace if true, only include the first word of the sequence name
      * @param preferIndexed if true attempt to return an indexed reader that supports non-linear traversal, else return the non-indexed reader
+     * @return a ReferenceSequenceFile instance
+     * @throws IOException if the URI is malformed or the file cannot be accessed
      */
-    public static ReferenceSequenceFile getReferenceSequenceFile(final File file, final boolean truncateNamesAtWhitespace, final boolean preferIndexed) {
-        return getReferenceSequenceFile(IOUtil.toPath(file), HtsPath::new, truncateNamesAtWhitespace, preferIndexed);
+    public static ReferenceSequenceFile getReferenceSequenceFile(final java.net.URI uri, final boolean truncateNamesAtWhitespace, final boolean preferIndexed) throws IOException {
+        try {
+            return getReferenceSequenceFile(Path.of(uri), truncateNamesAtWhitespace, preferIndexed);
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Invalid URI: " + uri + ". Expected format: scheme://path", e);
+        } catch (java.nio.file.FileSystemNotFoundException e) {
+            throw new IOException("No filesystem provider for scheme: " + uri.getScheme() + 
+                                 ". Install the appropriate NIO SPI provider.", e);
+        }
     }
 
     /**
@@ -298,15 +310,6 @@ public class ReferenceSequenceFileFactory {
             return new IndexedFastaSequenceFile(source, in, index, dictionary);
         }
         return new FastaSequenceFile(source, in, dictionary, truncateNamesAtWhitespace);
-    }
-
-    /**
-     * Returns the default dictionary name for a FASTA file.
-     *
-     * @param file the reference sequence file on disk.
-     */
-    public static File getDefaultDictionaryForReferenceSequence(final File file) {
-        return getDefaultDictionaryForReferenceSequence(IOUtil.toPath(file)).toFile();
     }
 
     /**

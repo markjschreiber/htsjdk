@@ -306,7 +306,7 @@ public class FastaReferenceWriterTest extends HtsjdkTest {
                 true, true, "seqA", null, seqs.get("seqA"));
         assertOutput(testOutputFile.toPath(), true, true, false, dictionary, 42, seqs, bpls, false);
         Assert.assertTrue(testOutputFile.delete());
-        Assert.assertTrue(ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(testOutputFile).delete());
+        Assert.assertTrue(ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(testOutputFile.toPath()).toFile().delete());
         Assert.assertTrue(ReferenceSequenceFileFactory.getFastaIndexFileName(testOutputFile.toPath()).toFile().delete());
     }
 
@@ -324,7 +324,7 @@ public class FastaReferenceWriterTest extends HtsjdkTest {
                 true, true, "seqA", null, seqs.get("seqA"));
         assertOutput(testOutputFile.toPath(), true, true, false, dictionary, FastaReferenceWriter.DEFAULT_BASES_PER_LINE, seqs, bpls, false);
         Assert.assertTrue(testOutputFile.delete());
-        Assert.assertTrue(ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(testOutputFile).delete());
+        Assert.assertTrue(ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(testOutputFile.toPath()).toFile().delete());
         Assert.assertTrue(ReferenceSequenceFileFactory.getFastaIndexFileName(testOutputFile.toPath()).toFile().delete());
     }
 
@@ -341,7 +341,7 @@ public class FastaReferenceWriterTest extends HtsjdkTest {
         final Path testDictOutputFile = ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(testOutputFile);
         testDictOutputFile.toFile().deleteOnExit();
 
-        final File source = new File("src/test/resources/htsjdk/samtools/hg19mini.fasta");
+        final Path source = Path.of("src/test/resources/htsjdk/samtools/hg19mini.fasta");
 
         final ReferenceSequenceFile sourceFasta = ReferenceSequenceFileFactory.getReferenceSequenceFile(source);
         final Map<String, byte[]> seqs = new HashMap<>();

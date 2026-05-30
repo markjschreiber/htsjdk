@@ -42,8 +42,8 @@ public class ReferenceSequenceFileWalkerTest extends HtsjdkTest {
 
     @Test(dataProvider = "TestReference")
     public void testGetFile(final String fileName, final int index1, final int index2) throws SAMException {
-        final File refFile = new File(fileName);
-        final ReferenceSequenceFileWalker refWalker = new ReferenceSequenceFileWalker(refFile);
+        final Path refPath = Paths.get(fileName);
+        final ReferenceSequenceFileWalker refWalker = new ReferenceSequenceFileWalker(refPath);
 
         ReferenceSequence sequence = refWalker.get(index1);
         Assert.assertEquals(sequence.getContigIndex(), index1);

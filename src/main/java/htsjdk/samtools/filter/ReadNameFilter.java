@@ -28,14 +28,21 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.util.IOUtil;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Filter by a set of specified readnames
- * <p/>
+ * Filter by a set of specified read names.
+ * 
+ * <p>This filter can either include or exclude reads based on whether their names
+ * appear in a provided set or file.
+ * 
+ * <p>All constructors use {@link Path} for filesystem operations, enabling compatibility
+ * with Java NIO Service Provider Interface (SPI) and custom filesystems.
+ * 
  * $Id$
  */
 public class ReadNameFilter implements SamRecordFilter {
@@ -43,13 +50,20 @@ public class ReadNameFilter implements SamRecordFilter {
     private boolean includeReads = false;
     private Set<String> readNameFilterSet = new HashSet<>();
 
-    public ReadNameFilter(final File readNameFilterFile, final boolean includeReads) {
+    /**
+     * Constructor that reads read names from a file.
+     * 
+     * @param readNameFilterPath path to a file containing read names (one per line)
+     * @param includeReads if true, include only reads in the file; if false, exclude reads in the file
+     * @throws SAMException if the file cannot be read
+     */
+    public ReadNameFilter(final Path readNameFilterPath, final boolean includeReads) {
 
-        IOUtil.assertFileIsReadable(readNameFilterFile);
-        IOUtil.assertFileSizeNonZero(readNameFilterFile);
+        IOUtil.assertFileIsReadable(readNameFilterPath);
+        IOUtil.assertFileSizeNonZero(readNameFilterPath);
 
         try {
-            final BufferedReader in = IOUtil.openFileForBufferedReading(readNameFilterFile);
+            final BufferedReader in = IOUtil.openFileForBufferedReading(readNameFilterPath);
 
             String line = null;
 
@@ -67,16 +81,21 @@ public class ReadNameFilter implements SamRecordFilter {
         this.includeReads = includeReads;
     }
 
+    /**
+     * Constructor that uses a provided set of read names.
+     * 
+     * @param readNameFilterSet set of read names to filter by
+     * @param includeReads if true, include only reads in the set; if false, exclude reads in the set
+     */
     public ReadNameFilter(final Set<String> readNameFilterSet, final boolean includeReads) {
         this.readNameFilterSet = readNameFilterSet;
         this.includeReads = includeReads;
     }
 
     /**
-     * Determines whether a SAMRecord matches this filter
+     * Determines whether a SAMRecord matches this filter.
      *
      * @param record the SAMRecord to evaluate
-     *
      * @return true if the SAMRecord matches the filter, otherwise false
      */
     @Override
@@ -85,11 +104,10 @@ public class ReadNameFilter implements SamRecordFilter {
     }
 
     /**
-     * Determines whether a pair of SAMRecords matches this filter
+     * Determines whether a pair of SAMRecords matches this filter.
      *
      * @param first  the first SAMRecord to evaluate
      * @param second the second SAMRecord to evaluate
-     *
      * @return true if the pair of records matches filter, otherwise false
      */
     @Override

@@ -190,8 +190,8 @@ public class CRAMContainerStreamWriterTest extends HtsjdkTest {
 
         final ReferenceSource refSource = createReferenceSource();
         final CRAMFileReader reader = new CRAMFileReader(
-                cramTempFile,
-                indexTempFile,
+                cramTempFile.toPath(),
+                indexTempFile.toPath(),
                 refSource,
                 ValidationStringency.SILENT);
         final CloseableIterator<SAMRecord> iterator = reader.query(new QueryInterval[]{new QueryInterval(1, 10, 10)}, false);

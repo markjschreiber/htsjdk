@@ -216,7 +216,7 @@ public class BAMMergerTest extends HtsjdkTest {
     // create a human-readable BAI
     private static Path textIndexBai(Path bai) {
         Path textBai = bai.resolveSibling(bai.getFileName().toString() + ".txt");
-        BAMIndexer.createAndWriteIndex(bai.toFile(), textBai.toFile(), true);
+        BAMIndexer.createAndWriteIndex(bai, textBai, true);
         return textBai;
     }
 

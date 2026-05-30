@@ -26,7 +26,7 @@ package htsjdk.samtools;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.util.RuntimeIOException;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -56,12 +56,12 @@ public abstract class AbstractBAMFileIndex implements BAMIndex {
         this(new IndexStreamBuffer(stream), stream.getSource(), dictionary);
     }
 
-    protected AbstractBAMFileIndex(final File file, final SAMSequenceDictionary dictionary) {
-        this(new MemoryMappedFileBuffer(file), file.getName(), dictionary);
+    protected AbstractBAMFileIndex(final Path path, final SAMSequenceDictionary dictionary) {
+        this(new MemoryMappedFileBuffer(path), path.toString(), dictionary);
     }
 
-    protected AbstractBAMFileIndex(final File file, final SAMSequenceDictionary dictionary, final boolean useMemoryMapping) {
-        this((useMemoryMapping ? new MemoryMappedFileBuffer(file) : new RandomAccessFileBuffer(file)), file.getName(), dictionary);
+    protected AbstractBAMFileIndex(final Path path, final SAMSequenceDictionary dictionary, final boolean useMemoryMapping) {
+        this((useMemoryMapping ? new MemoryMappedFileBuffer(path) : new RandomAccessFileBuffer(path)), path.toString(), dictionary);
     }
 
     protected AbstractBAMFileIndex(final IndexFileBuffer indexFileBuffer, final String source, final SAMSequenceDictionary dictionary) {

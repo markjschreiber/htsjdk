@@ -9,9 +9,9 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,9 +29,9 @@ public class PositionalBufferedStreamTest extends HtsjdkTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
-        File fi =  new File(TestUtils.DATA_DIR + "test.bed");
-        FileIs = new FileInputStream(fi);
-        expectedBytes = fi.length();
+        Path fi = Path.of(TestUtils.DATA_DIR, "test.bed");
+        FileIs = Files.newInputStream(fi);
+        expectedBytes = Files.size(fi);
     }
 
     @AfterMethod

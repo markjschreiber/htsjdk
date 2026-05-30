@@ -9,8 +9,8 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -22,14 +22,14 @@ import java.util.List;
  */
 public class CRAMIndexPermutationsTests extends HtsjdkTest {
 
-    private static final File TEST_DATA_DIR = new File("src/test/resources/htsjdk/samtools/cram");
+    private static final Path TEST_DATA_DIR = Path.of("src/test/resources/htsjdk/samtools/cram");
 
     // BAM test file for comparison with CRAM results. This is asubset of NA12878
     // (20:10000000-10004000, 21:10000000-10004000, +2000 unmapped). There is no corresponding
     // reference checked in for this file since its too big, but because we're only using it to validate
     // index query results, we only care that the right the reads are returned, not what the read bases are, so
     // we use a synthetic in-memory fake reference of all 'N's to convert it to CRAM.
-    private static final File truthBAM = new File(TEST_DATA_DIR, "NA12878.20.21.unmapped.orig.bam");
+    private static final Path truthBAM = TEST_DATA_DIR.resolve("NA12878.20.21.unmapped.orig.bam");
 
     //Note that these tests can be REALLY slow because although we don't use the real (huge) reference, we use a fake
     // in-memory reference, but the reference sequences in the dictionary in the test file are large (60 mega-bases),
@@ -145,7 +145,7 @@ public class CRAMIndexPermutationsTests extends HtsjdkTest {
             final CRAMEncodingStrategy cramEncodingStrategy,
             final QueryInterval[] queryIntervals) throws IOException {
 
-        final File tempCRAM = CRAMIndexTestHelper.createCRAMWithBAIForEncodingStrategy(
+        final Path tempCRAM = CRAMIndexTestHelper.createCRAMWithBAIForEncodingStrategy(
                 truthBAM,
                 fakeReferenceSource,
                 cramEncodingStrategy);
@@ -166,7 +166,7 @@ public class CRAMIndexPermutationsTests extends HtsjdkTest {
             final CRAMEncodingStrategy cramEncodingStrategy,
             final QueryInterval[] queryIntervals) throws IOException {
 
-        final File tempCRAM = CRAMIndexTestHelper.createCRAMWithCRAIForEncodingStrategy(
+        final Path tempCRAM = CRAMIndexTestHelper.createCRAMWithCRAIForEncodingStrategy(
                 truthBAM,
                 fakeReferenceSource,
                 cramEncodingStrategy);
@@ -203,7 +203,7 @@ public class CRAMIndexPermutationsTests extends HtsjdkTest {
 
     @Test(dataProvider = "cramUnmappedTestCases")
     public void testQueryUnmapped(final CRAMEncodingStrategy cramEncodingStrategy) throws IOException {
-        final File tempCRAM = CRAMIndexTestHelper.createCRAMWithCRAIForEncodingStrategy(
+        final Path tempCRAM = CRAMIndexTestHelper.createCRAMWithCRAIForEncodingStrategy(
                 truthBAM,
                 fakeReferenceSource,
                 cramEncodingStrategy);
@@ -233,14 +233,14 @@ public class CRAMIndexPermutationsTests extends HtsjdkTest {
     @Test(dataProvider = "cramUnmappedOnlyTestCases")
     public void testQueryUnmappedOnUnmappedOnlyInput(final CRAMEncodingStrategy cramEncodingStrategy) throws IOException {
         // queryUnmapped for each encoding strategy on a cram that has ONLY unmapped reads (including 13  unmapped/placed)
-        final File tempCRAM = CRAMIndexTestHelper.createCRAMWithCRAIForEncodingStrategy(
-                new File(TEST_DATA_DIR, "NA12878.unmapped.cram"),
-                new ReferenceSource(new File(TEST_DATA_DIR, "human_g1k_v37.20.21.1-100.fasta")),
+        final Path tempCRAM = CRAMIndexTestHelper.createCRAMWithCRAIForEncodingStrategy(
+                TEST_DATA_DIR.resolve("NA12878.unmapped.cram"),
+                new ReferenceSource(TEST_DATA_DIR.resolve("human_g1k_v37.20.21.1-100.fasta")),
                 cramEncodingStrategy);
         final List<String> cramResults = CRAMIndexTestHelper.getCRAMResultsForUnmapped(
                 tempCRAM,
                 SamFiles.findIndex(tempCRAM),
-                new ReferenceSource(new FastaSequenceFile(new File(TEST_DATA_DIR, "human_g1k_v37.20.21.1-100.fasta"), false)));
+                new ReferenceSource(new FastaSequenceFile(TEST_DATA_DIR.resolve("human_g1k_v37.20.21.1-100.fasta"), false)));
         // there are 513 unmapped reads, 13 of which are "placed" on reference sequence, and are not returned by htsjdk
         // unmapped query
         Assert.assertEquals(cramResults.size(), 500);

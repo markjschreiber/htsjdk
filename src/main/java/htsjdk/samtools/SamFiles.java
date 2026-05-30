@@ -1,14 +1,23 @@
 package htsjdk.samtools;
 
 import htsjdk.samtools.util.FileExtensions;
-import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Log;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
+ * Utility class for SAM/BAM/CRAM file operations using Path-based APIs.
+ * 
+ * <p>This class provides utilities for:
+ * <ul>
+ *   <li>Finding index files for SAM/BAM/CRAM files</li>
+ *   <li>Detecting file types based on file extensions</li>
+ * </ul>
+ * 
+ * <p>All methods use {@link Path} for filesystem operations, enabling compatibility
+ * with Java NIO Service Provider Interface (SPI) and custom filesystems.
+ * 
  * @author mccowan
  */
 public class SamFiles {
@@ -16,23 +25,19 @@ public class SamFiles {
     private final static Log LOG = Log.getInstance(SamFiles.class);
 
     /**
-     * Finds the index file associated with the provided SAM file.  The index file must exist and be reachable to be found.
+     * Finds the index file associated with the provided SAM/BAM/CRAM file.
+     * The index file must exist and be reachable to be found.
      *
-     * If the file is a symlink and the index cannot be found, try to unsymlink the file and look for the bai in the actual file path.
+     * <p>For BAM files, looks for .bai or .csi index files.
+     * For CRAM files, looks for .crai index files.
+     * Supports both standard naming conventions (e.g., file.bai) and
+     * alternative conventions (e.g., file.bam.bai).
      *
-     * @return The index for the provided SAM, or null if one was not found.
-     */
-    public static File findIndex(final File samFile) {
-        final Path path = findIndex(IOUtil.toPath(samFile));
-        return path == null ? null : path.toFile();
-    }
-
-    /**
-     * Finds the index file associated with the provided SAM file.  The index file must exist and be reachable to be found.
+     * <p>If the file is a symlink and the index cannot be found, attempts to
+     * resolve the symlink and look for the index in the actual file path.
      *
-     * If the file is a symlink and the index cannot be found, try to unsymlink the file and look for the bai in the actual file path.
-     *
-     * @return The index for the provided SAM, or null if one was not found.
+     * @param samPath the path to the SAM/BAM/CRAM file
+     * @return the path to the index file, or null if one was not found
      */
     public static Path findIndex(final Path samPath) {
         final Path indexPath = lookForIndex(samPath); //try to find the index
@@ -104,5 +109,35 @@ public class SamFiles {
         }
 
         return null;
+    }
+
+    /**
+     * Determines if the given path represents a BAM file based on its file extension.
+     * 
+     * @param path the path to check
+     * @return true if the path has a valid BAM file extension (.bam), false otherwise
+     */
+    public static boolean isBAMFile(final Path path) {
+        return path != null && SamReader.Type.BAM_TYPE.hasValidFileExtension(path.getFileName().toString());
+    }
+
+    /**
+     * Determines if the given path represents a CRAM file based on its file extension.
+     * 
+     * @param path the path to check
+     * @return true if the path has a valid CRAM file extension (.cram), false otherwise
+     */
+    public static boolean isCRAMFile(final Path path) {
+        return path != null && SamReader.Type.CRAM_TYPE.hasValidFileExtension(path.getFileName().toString());
+    }
+
+    /**
+     * Determines if the given path represents a SAM file based on its file extension.
+     * 
+     * @param path the path to check
+     * @return true if the path has a valid SAM file extension (.sam), false otherwise
+     */
+    public static boolean isSAMFile(final Path path) {
+        return path != null && SamReader.Type.SAM_TYPE.hasValidFileExtension(path.getFileName().toString());
     }
 }

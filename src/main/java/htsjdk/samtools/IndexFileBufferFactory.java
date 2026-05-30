@@ -4,20 +4,20 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.RuntimeIOException;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 class IndexFileBufferFactory {
 
-    static IndexFileBuffer getBuffer(File file, boolean enableMemoryMapping) {
+    static IndexFileBuffer getBuffer(Path path, boolean enableMemoryMapping) {
         boolean isCompressed;
         try {
-            isCompressed = IOUtil.isBlockCompressed(file.toPath());
+            isCompressed = IOUtil.isBlockCompressed(path);
         } catch (IOException ioe) {
             throw (new RuntimeIOException(ioe));
         }
 
-        return isCompressed ? new CompressedIndexFileBuffer(file) : (enableMemoryMapping ? new MemoryMappedFileBuffer(file) : new RandomAccessFileBuffer(file));
+        return isCompressed ? new CompressedIndexFileBuffer(path) : (enableMemoryMapping ? new MemoryMappedFileBuffer(path) : new RandomAccessFileBuffer(path));
     }
 
     static IndexFileBuffer getBuffer(SeekableStream seekableStream) {

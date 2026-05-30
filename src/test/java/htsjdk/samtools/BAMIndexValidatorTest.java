@@ -4,14 +4,14 @@ import htsjdk.HtsjdkTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class BAMIndexValidatorTest extends HtsjdkTest {
 
-    private static final File BAM_FILE = new File("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
-    private static final File BAI_FILE = new File(BAM_FILE.getPath() + ".bai");
-    private static final File CSI_FILE = new File(BAM_FILE.getPath() + ".csi");
+    private static final Path BAM_FILE = Path.of("src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
+    private static final Path BAI_FILE = Path.of(BAM_FILE.toString() + ".bai");
+    private static final Path CSI_FILE = Path.of(BAM_FILE.toString() + ".csi");
 
     @Test
     public void exhaustivelyTestIndexTest () throws IOException {

@@ -505,7 +505,7 @@ public final class SAMUtils {
         }
 
         // Sort the read group records by their first
-        final SamReader reader = SamReaderFactory.makeDefault().referenceSequence(referenceFasta).open(input);
+        final SamReader reader = SamReaderFactory.makeDefault().referenceSequence(referenceFasta.toPath()).open(input.toPath());
         final List<SAMReadGroupRecord> sortedRecords = new ArrayList<>(reader.getFileHeader().getReadGroups());
         Collections.sort(sortedRecords, HEADER_RECORD_COMPARATOR);
 
@@ -681,18 +681,6 @@ public final class SAMUtils {
 
 
     public static long findVirtualOffsetOfFirstRecordInBam(final Path bamFile) {
-        try (SeekableStream ss = new SeekablePathStream(bamFile)){
-            return BAMFileReader.findVirtualOffsetOfFirstRecord(ss);
-        } catch (final IOException ioe) {
-            throw new RuntimeEOFException(ioe);
-        }
-    }
-
-    /**
-     * Returns the virtual file offset of the first record in a BAM file - i.e. the virtual file
-     * offset after skipping over the text header and the sequence records.
-     */
-    public static long findVirtualOffsetOfFirstRecordInBam(final File bamFile) {
         try {
             return BAMFileReader.findVirtualOffsetOfFirstRecord(bamFile);
         } catch (final IOException ioe) {

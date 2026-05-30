@@ -46,7 +46,6 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -57,7 +56,7 @@ import java.util.stream.Collectors;
 
 public class VCFMergerTest extends HtsjdkTest {
 
-    private final static Path VCF_FILE = new File("src/test/resources/htsjdk/variant/HiSeq.10000.vcf.bgz").toPath();
+    private final static Path VCF_FILE = Path.of("src/test/resources/htsjdk/variant/HiSeq.10000.vcf.bgz");
 
     /**
      * Writes a <i>partitioned VCF</i>.
@@ -199,7 +198,7 @@ public class VCFMergerTest extends HtsjdkTest {
     }
 
     private static Path indexVcf(Path vcf, Path tbi) throws IOException {
-        TabixIndex tabixIndex = IndexFactory.createTabixIndex(vcf.toFile(), new VCFCodec(), null);
+        TabixIndex tabixIndex = IndexFactory.createTabixIndex(vcf, new VCFCodec(), null);
         tabixIndex.write(tbi);
         return tbi;
     }
@@ -209,13 +208,13 @@ public class VCFMergerTest extends HtsjdkTest {
         final Path outputDir = IOUtil.createTempDir(this.getClass().getSimpleName() + ".tmp");
         IOUtil.deleteOnExit(outputDir);
 
-        final Path outputVcf = File.createTempFile(this.getClass().getSimpleName() + ".", FileExtensions.COMPRESSED_VCF).toPath();
+        final Path outputVcf = Files.createTempFile(this.getClass().getSimpleName() + ".", FileExtensions.COMPRESSED_VCF);
         IOUtil.deleteOnExit(outputVcf);
 
         final Path outputTbi = IOUtil.addExtension(outputVcf, FileExtensions.TABIX_INDEX);
         IOUtil.deleteOnExit(outputTbi);
 
-        final Path outputTbiMerged = File.createTempFile(this.getClass().getSimpleName() + ".", FileExtensions.TABIX_INDEX).toPath();
+        final Path outputTbiMerged = Files.createTempFile(this.getClass().getSimpleName() + ".", FileExtensions.TABIX_INDEX);
         IOUtil.deleteOnExit(outputTbiMerged);
 
         // 1. Read an input VCF and write it out in partitioned form (header, parts, terminator)

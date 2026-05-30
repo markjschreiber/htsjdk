@@ -227,11 +227,11 @@ public class BAMIndexMetaData {
      * Statistics include count of aligned and unaligned reads for each reference sequence
      * and a count of all records with no start coordinate
      */
-    static public void printIndexStats(final File inputBamFile) {
+    static public void printIndexStats(final java.nio.file.Path inputBamPath) {
         try {
-            final BAMFileReader bam = new BAMFileReader(inputBamFile, null, false, false, ValidationStringency.SILENT, new DefaultSAMRecordFactory());
+            final BAMFileReader bam = new BAMFileReader(inputBamPath, null, false, false, ValidationStringency.SILENT, new DefaultSAMRecordFactory());
             if (!bam.hasIndex() || bam.getIndexType() == null) {
-                throw new SAMException("No index for bam file " + inputBamFile);
+                throw new SAMException("No index for bam file " + inputBamPath);
             }
 
             BAMIndexMetaData[] data = getIndexStats(bam);

@@ -4,7 +4,6 @@ package htsjdk.tribble.util;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import htsjdk.HtsjdkTest;
-import htsjdk.samtools.util.IOUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -125,18 +124,18 @@ public class ParsingUtilsTest extends HtsjdkTest {
 
     @Test
     public void testFileDoesExist() throws IOException{
-        File tempFile = File.createTempFile(getClass().getSimpleName(), ".tmp");
-        tempFile.deleteOnExit();
-        testExists(tempFile.getAbsolutePath(), true);
-        testExists(tempFile.toURI().toString(), true);;
+        Path tempFile = Files.createTempFile(getClass().getSimpleName(), ".tmp");
+        tempFile.toFile().deleteOnExit();
+        testExists(tempFile.toAbsolutePath().toString(), true);
+        testExists(tempFile.toUri().toString(), true);;
     }
 
     @Test
     public void testFileDoesNotExist() throws IOException{
-        File tempFile = File.createTempFile(getClass().getSimpleName(), ".tmp");
-        tempFile.delete();
-        testExists(tempFile.getAbsolutePath(), false);
-        testExists(tempFile.toURI().toString(), false);
+        Path tempFile = Files.createTempFile(getClass().getSimpleName(), ".tmp");
+        Files.delete(tempFile);
+        testExists(tempFile.toAbsolutePath().toString(), false);
+        testExists(tempFile.toUri().toString(), false);
     }
 
     @Test
@@ -183,13 +182,13 @@ public class ParsingUtilsTest extends HtsjdkTest {
 
     @Test
     public void testFileOpenInputStream() throws IOException{
-        File tempFile = File.createTempFile(getClass().getSimpleName(), ".tmp");
-        tempFile.deleteOnExit();
-        try(Writer writer = new BufferedWriter(new OutputStreamWriter(IOUtil.openFileForWriting(tempFile)))) {
+        Path tempFile = Files.createTempFile(getClass().getSimpleName(), ".tmp");
+        tempFile.toFile().deleteOnExit();
+        try(Writer writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(tempFile)))) {
             writer.write("hello");
         }
-        testStream(tempFile.getAbsolutePath());
-        testStream(tempFile.toURI().toString());
+        testStream(tempFile.toAbsolutePath().toString());
+        testStream(tempFile.toUri().toString());
     }
 
     @Test

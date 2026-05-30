@@ -135,6 +135,15 @@ public class BlockCompressedOutputStream
     }
 
     /**
+     * Uses default compression level, which is 5 unless changed by setCompressionLevel
+     * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
+     * Use {@link #BlockCompressedOutputStream(Path, int, DeflaterFactory)} to specify a custom factory.
+     */
+    public BlockCompressedOutputStream(final Path path) {
+        this(path, defaultCompressionLevel);
+    }
+
+    /**
      * Prepare to compress at the given compression level
      * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
      * @param compressionLevel 1 <= compressionLevel <= 9
@@ -151,6 +160,16 @@ public class BlockCompressedOutputStream
      */
     public BlockCompressedOutputStream(final File file, final int compressionLevel) {
         this(file, compressionLevel, defaultDeflaterFactory);
+    }
+
+    /**
+     * Prepare to compress at the given compression level
+     * @param compressionLevel 1 <= compressionLevel <= 9
+     * Note: this constructor uses the default {@link DeflaterFactory}, see {@link #getDefaultDeflaterFactory()}.
+     * Use {@link #BlockCompressedOutputStream(Path, int, DeflaterFactory)} to specify a custom factory.
+     */
+    public BlockCompressedOutputStream(final Path path, final int compressionLevel) {
+        this(path, compressionLevel, defaultDeflaterFactory);
     }
 
     /**

@@ -14,7 +14,6 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -24,8 +23,8 @@ import java.nio.file.Path;
  * Simple tests for the reference sequence file factory
  */
 public class ReferenceSequenceFileFactoryTests extends HtsjdkTest {
-    public static final File hg18 = new File("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.fasta");
-    public static final File hg18bgzip = new File("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.fasta.gz");
+    public static final Path hg18 = Path.of("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.fasta");
+    public static final Path hg18bgzip = Path.of("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.fasta.gz");
 
     @Test public void testPositivePath() {
         final ReferenceSequenceFile f = ReferenceSequenceFileFactory.getReferenceSequenceFile(hg18);
@@ -62,15 +61,15 @@ public class ReferenceSequenceFileFactoryTests extends HtsjdkTest {
         return new Object[][] {
                 {hg18, true},
                 {hg18bgzip, true},
-                {new File("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.noindex.fasta"), false},
-                {new File("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.noindex.fasta.gz"), false},
-                {new File("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.nogzindex.fasta.gz"), false}
+                {Path.of("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.noindex.fasta"), false},
+                {Path.of("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.noindex.fasta.gz"), false},
+                {Path.of("src/test/resources/htsjdk/samtools/reference/Homo_sapiens_assembly18.trimmed.nogzindex.fasta.gz"), false}
         };
     }
 
     @Test(dataProvider = "canCreateIndexedFastaParams")
-    public void testCanCreateIndexedFastaReader(final File path, final boolean indexed) {
-        Assert.assertEquals(ReferenceSequenceFileFactory.canCreateIndexedFastaReader(path.toPath()), indexed);
+    public void testCanCreateIndexedFastaReader(final Path path, final boolean indexed) {
+        Assert.assertEquals(ReferenceSequenceFileFactory.canCreateIndexedFastaReader(path), indexed);
     }
 
     @DataProvider
@@ -87,37 +86,37 @@ public class ReferenceSequenceFileFactoryTests extends HtsjdkTest {
 
     @Test(dataProvider = "fastaNames")
     public void testGetDefaultDictionaryForReferenceSequence(final String fastaFile, final String expectedDict) throws Exception {
-        Assert.assertEquals(ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(new File(fastaFile)), new File(expectedDict));
+        Assert.assertEquals(ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(Path.of(fastaFile)), Path.of(expectedDict));
     }
 
     @DataProvider
     public Object[][] bundleCases() {
-        final String dataDir = "src/test/resources/htsjdk/samtools/reference";
+        final Path dataDir = Path.of("src/test/resources/htsjdk/samtools/reference");
 
         return new Object[][] {
                 {
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.fasta").getAbsolutePath()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.fasta").toAbsolutePath().toString()),
                         null,
                         null,
                         null
                 },
                 {
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.fasta").getAbsolutePath()),
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.dict").getAbsolutePath()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.fasta").toAbsolutePath().toString()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.dict").toAbsolutePath().toString()),
                         null,
                         null
                 },
                 {
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.fasta").getAbsolutePath()),
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.dict").getAbsolutePath()),
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.fasta.fai").getAbsolutePath()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.fasta").toAbsolutePath().toString()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.dict").toAbsolutePath().toString()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.fasta.fai").toAbsolutePath().toString()),
                         null
                 },
                 {
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.fasta.gz").getAbsolutePath()),
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.dict").getAbsolutePath()),
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.fasta.gz.fai").getAbsolutePath()),
-                        new HtsPath(new File(dataDir, "Homo_sapiens_assembly18.trimmed.fasta.gz.gzi").getAbsolutePath()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.fasta.gz").toAbsolutePath().toString()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.dict").toAbsolutePath().toString()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.fasta.gz.fai").toAbsolutePath().toString()),
+                        new HtsPath(dataDir.resolve("Homo_sapiens_assembly18.trimmed.fasta.gz.gzi").toAbsolutePath().toString()),
                 },
         };
     }

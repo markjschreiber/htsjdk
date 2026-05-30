@@ -23,60 +23,55 @@
  */
 package htsjdk.samtools.filter;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Path;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 
 /**
- * javascript based read filter
+ * JavaScript-based SAM record filter.
  * 
+ * <p>The script puts the following variables in the script context:
+ * <ul>
+ *   <li>'record' - a {@link SAMRecord}</li>
+ *   <li>'header' - a {@link SAMFileHeader}</li>
+ * </ul>
  * 
- * The script puts the following variables in the script context:
- *
- * - 'record' a SamRecord (
- * https://github.com/samtools/htsjdk/blob/master/src/java/htsjdk/samtools/
- * SAMRecord.java ) - 'header' (
- * https://github.com/samtools/htsjdk/blob/master/src/java/htsjdk/samtools/
- * SAMFileHeader.java )
+ * <p>All constructors use {@link Path} for filesystem operations, enabling compatibility
+ * with Java NIO Service Provider Interface (SPI) and custom filesystems.
  * 
  * @author Pierre Lindenbaum PhD Institut du Thorax - INSERM - Nantes - France
  */
 public class JavascriptSamRecordFilter extends AbstractJavascriptFilter<SAMFileHeader, SAMRecord>
         implements SamRecordFilter {
     /**
-     * constructor using a javascript File
+     * Constructor using a JavaScript file path.
      * 
-     * @param scriptFile
-     *            the javascript file to be compiled
-     * @param header
-     *            the SAMHeader
+     * @param scriptPath the path to the JavaScript file to be compiled
+     * @param header the SAM file header
+     * @throws IOException if the script file cannot be read
      */
-    public JavascriptSamRecordFilter(final File scriptFile, final SAMFileHeader header) throws IOException {
-        super(scriptFile, header);
+    public JavascriptSamRecordFilter(final Path scriptPath, final SAMFileHeader header) throws IOException {
+        super(scriptPath, header);
     }
 
     /**
-     * constructor using a javascript expression
+     * Constructor using a JavaScript expression.
      * 
-     * @param scriptExpression
-     *            the javascript expression to be compiled
-     * @param header
-     *            the SAMHeader
+     * @param scriptExpression the JavaScript expression to be compiled
+     * @param header the SAM file header
      */
     public JavascriptSamRecordFilter(final String scriptExpression, final SAMFileHeader header) {
         super(scriptExpression, header);
     }
 
     /**
-     * constructor using a java.io.Reader
+     * Constructor using a Reader.
      * 
-     * @param scriptReader
-     *            the javascript reader to be compiled. will be closed
-     * @param header
-     *            the SAMHeader
+     * @param scriptReader the JavaScript reader to be compiled. will be closed
+     * @param header the SAM file header
      */
     public JavascriptSamRecordFilter(final Reader scriptReader, final SAMFileHeader header) {
         super(scriptReader, header);

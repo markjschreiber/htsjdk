@@ -8,6 +8,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.*;
+import java.nio.file.Path;
 
 /**
  * Created by vadim on 19/02/2016.
@@ -43,7 +44,7 @@ public class LosslessRoundTripTest extends HtsjdkTest {
 
         byte[] cramBytes = baos.toByteArray();
         InputStream cramInputStream = new ByteArrayInputStream(cramBytes);
-        CRAMFileReader reader = new CRAMFileReader(cramInputStream, (File) null, source, ValidationStringency.STRICT);
+        CRAMFileReader reader = new CRAMFileReader(cramInputStream, (Path) null, source, ValidationStringency.STRICT);
         final SAMRecordIterator iterator = reader.getIterator();
         Assert.assertTrue(iterator.hasNext());
         SAMRecord record2 = iterator.next();

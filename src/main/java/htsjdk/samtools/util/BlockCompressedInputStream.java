@@ -132,6 +132,18 @@ public class BlockCompressedInputStream extends InputStream implements LocationA
         this(new SeekablePathStream(file));
     }
 
+    /**
+     * Use this ctor if you wish to call seek()
+     * @param path source of bytes
+     * @param inflaterFactory {@link InflaterFactory} used by {@link BlockGunzipper}
+     * @throws IOException
+     */
+    public BlockCompressedInputStream(final Path path, final InflaterFactory inflaterFactory) throws IOException {
+        mFile = new SeekablePathStream(path);
+        mStream = null;
+        blockGunzipper = new BlockGunzipper(inflaterFactory);
+    }
+
 
     /**
      * Use this ctor if you wish to call seek()

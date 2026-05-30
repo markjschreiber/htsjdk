@@ -37,6 +37,7 @@ import htsjdk.variant.vcf.VCFHeader;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -62,14 +63,14 @@ public final class PrintVariantsExample {
             System.exit(1);
         }
         final File inputFile = new File(args[0]);
-        final File outputFile = args.length >= 2 ? new File(args[1]) : null;
+        final Path outputPath = args.length >= 2 ? Path.of(args[1]) : null;
 
         final long start = System.currentTimeMillis();
 
         log.info("Start with args:" + Arrays.toString(args));
         printConfigurationInfo();
 
-        try (final VariantContextWriter writer = outputFile == null ? null : new VariantContextWriterBuilder().setOutputFile(outputFile).setOutputFileType(VariantContextWriterBuilder.OutputType.VCF).unsetOption(Options.INDEX_ON_THE_FLY).build();
+        try (final VariantContextWriter writer = outputPath == null ? null : new VariantContextWriterBuilder().setOutputPath(outputPath).setOutputFileType(VariantContextWriterBuilder.OutputType.VCF).unsetOption(Options.INDEX_ON_THE_FLY).build();
              final AbstractFeatureReader<VariantContext, LineIterator> reader = AbstractFeatureReader.getFeatureReader(inputFile.getAbsolutePath(), new VCFCodec(), false)) {
 
             log.info(reader.getClass().getSimpleName() + " hasIndex " + reader.hasIndex());

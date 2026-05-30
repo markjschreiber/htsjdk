@@ -22,17 +22,18 @@ import htsjdk.samtools.util.CloseableIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Iterator;
 
 // NOTE: running these tests require a local htsget server
+@Test(groups = "http")
 
 public class HtsgetBAMCodecTest extends HtsjdkTest {
     private final static IOPath htsgetBAM = new HtsPath(
             HtsgetBAMFileReaderTest.HTSGET_ENDPOINT +
                     HtsgetBAMFileReaderTest.LOCAL_PREFIX + "index_test.bam");
-    private final static File bamFile = new File(
+    private final static Path bamFile = Path.of(
             "src/test/resources/htsjdk/samtools/BAMFileIndexTest/index_test.bam");
 
     @Test(expectedExceptions=IllegalArgumentException.class)

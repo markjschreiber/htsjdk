@@ -33,15 +33,15 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * @author Pierre Lindenbaum PhD Institut du Thorax - INSERM - Nantes - France
  */
 
 public class JavascriptSamRecordFilterTest extends HtsjdkTest {
-    final File testDir = new File("./src/test/resources/htsjdk/samtools");
+    final Path testDir = Path.of("./src/test/resources/htsjdk/samtools");
 
     @DataProvider
     public Object[][] jsData() {
@@ -51,10 +51,10 @@ public class JavascriptSamRecordFilterTest extends HtsjdkTest {
     @Test(dataProvider = "jsData")
     public void testJavascriptFilters(final String samFile, final String javascriptFile, final int expectCount) {
         final SamReaderFactory srf = SamReaderFactory.makeDefault();
-        final SamReader samReader = srf.open(new File(testDir, samFile));
+        final SamReader samReader = srf.open(testDir.resolve(samFile));
         final JavascriptSamRecordFilter filter;
         try {
-            filter = new JavascriptSamRecordFilter(new File(testDir, javascriptFile),
+            filter = new JavascriptSamRecordFilter(testDir.resolve(javascriptFile),
                     samReader.getFileHeader());    
         } catch (IOException err) {
             Assert.fail("Cannot read script",err);

@@ -449,7 +449,7 @@ class UrlInputResource extends InputResource {
         try {
             return IOUtil.getPath(urlResource.toExternalForm());
         } catch (IOException | IllegalArgumentException |
-            FileSystemNotFoundException | SecurityException e) {
+            FileSystemNotFoundException | ProviderNotFoundException | SecurityException e) {
             return null;
         }
     }

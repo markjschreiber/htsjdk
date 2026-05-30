@@ -23,66 +23,65 @@
  */
 package htsjdk.variant.variantcontext.filter;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Path;
 
 import htsjdk.samtools.filter.AbstractJavascriptFilter;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
 
 /**
- * javascript based variant filter The script puts the following variables in
- * the script context:
- *
- * - 'header' a htsjdk.variant.vcf.VCFHeader 
- * - 'variant' a htsjdk.variant.variantcontext.VariantContext
+ * JavaScript-based variant filter.
+ * 
+ * <p>The script puts the following variables in the script context:
+ * <ul>
+ *   <li>'header' - a {@link VCFHeader}</li>
+ *   <li>'variant' - a {@link VariantContext}</li>
+ * </ul>
+ * 
+ * <p>All constructors use {@link Path} for filesystem operations, enabling compatibility
+ * with Java NIO Service Provider Interface (SPI) and custom filesystems.
  * 
  * @author Pierre Lindenbaum PhD Institut du Thorax - INSERM - Nantes - France
  */
 public class JavascriptVariantFilter extends AbstractJavascriptFilter<VCFHeader, VariantContext>
         implements VariantContextFilter {
 	/**
-	 * constructor using a javascript File
+	 * Constructor using a JavaScript file path.
 	 * 
-	 * @param scriptFile
-	 *            the javascript file to be compiled
-	 * @param header
-	 *            the SAMHeader
+	 * @param scriptPath the path to the JavaScript file to be compiled
+	 * @param header the VCF header
+	 * @throws IOException if the script file cannot be read
 	 */
-	public JavascriptVariantFilter(final File scriptFile, final VCFHeader header) throws IOException {
-		super(scriptFile, header);
+	public JavascriptVariantFilter(final Path scriptPath, final VCFHeader header) throws IOException {
+		super(scriptPath, header);
 	}
 
 	/**
-     * constructor using a Reader
+     * Constructor using a Reader.
      * 
-     * @param scriptReader
-     *            the reader for the script to be compiled. Will be closed
-     * @param header
-     *            the SAMHeader
+     * @param scriptReader the reader for the script to be compiled. Will be closed
+     * @param header the VCF header
      */
-    public JavascriptVariantFilter(final Reader scriptReader, final VCFHeader header) throws IOException {
+    public JavascriptVariantFilter(final Reader scriptReader, final VCFHeader header) {
         super(scriptReader, header);
     }
     
 	/**
-	 * constructor using a javascript expression
+	 * Constructor using a JavaScript expression.
 	 * 
-	 * @param scriptExpression
-	 *            the javascript expression to be compiled
-	 * @param header
-	 *            the SAMHeader
+	 * @param scriptExpression the JavaScript expression to be compiled
+	 * @param header the VCF header
 	 */
 	public JavascriptVariantFilter(final String scriptExpression, final VCFHeader header) {
 		super(scriptExpression, header);
 	}
 
 	/**
-	 * Determines whether a VariantContext matches this filter
+	 * Determines whether a VariantContext matches this filter.
 	 *
-	 * @param record
-	 *            the VariantContext to evaluate
+	 * @param record the VariantContext to evaluate
 	 * @return true if accept(record) returned true
 	 */
 	@Override

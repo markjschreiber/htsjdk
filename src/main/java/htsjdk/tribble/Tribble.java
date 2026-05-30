@@ -25,13 +25,15 @@ package htsjdk.tribble;
 
 import htsjdk.samtools.util.FileExtensions;
 import htsjdk.tribble.util.ParsingUtils;
-import htsjdk.tribble.util.TabixUtils;
 
-import java.io.File;
 import java.nio.file.Path;
 
 /**
- * Common, tribble wide constants and static functions
+ * Common Tribble-wide constants and static functions for working with genomic feature files.
+ * 
+ * <p>This class provides utilities for constructing index file paths for Tribble and Tabix indexes.
+ * All methods use {@link Path} for filesystem operations, enabling compatibility with Java NIO 
+ * Service Provider Interface (SPI) and custom filesystems.
  */
 public class Tribble {
     private Tribble() { } // can't be instantiated
@@ -43,8 +45,9 @@ public class Tribble {
     public final static String STANDARD_INDEX_EXTENSION = FileExtensions.TRIBBLE_INDEX;
 
     /**
-     * Return the name of the index file for the provided {@code filename}
-     * Does not actually create an index
+     * Return the name of the index file for the provided {@code filename}.
+     * Does not actually create an index.
+     * 
      * @param filename  name of the file
      * @return non-null String representing the index filename
      */
@@ -53,74 +56,53 @@ public class Tribble {
     }
 
     /**
-     * Return the File of the index file for the provided {@code file}
-     * Does not actually create an index
-     * @param file  the file
-     * @return a non-null File representing the index
-     */
-    public static File indexFile(final File file) {
-        return indexFile(file.getAbsoluteFile(), FileExtensions.TRIBBLE_INDEX);
-    }
-
-    /**
-     * Return the name of the index file for the provided {@code path}
-     * Does not actually create an index
-     * @param path the path
-     * @return Path representing the index filename
+     * Return the Path of the index file for the provided {@code path}.
+     * Does not actually create an index.
+     * 
+     * <p>The index path is constructed by appending the Tribble index extension 
+     * ({@link FileExtensions#TRIBBLE_INDEX}) to the absolute path.
+     * 
+     * @param path the path to the data file
+     * @return a non-null Path representing the index file location
      */
     public static Path indexPath(final Path path) {
         return path.getFileSystem().getPath(indexFile(path.toAbsolutePath().toString()));
     }
 
     /**
-     * Return the name of the tabix index file for the provided {@code filename}
-     * Does not actually create an index
+     * Return the name of the tabix index file for the provided {@code filename}.
+     * Does not actually create an index.
+     * 
      * @param filename  name of the file
-     * @return non-null String representing the index filename
+     * @return non-null String representing the tabix index filename
      */
     public static String tabixIndexFile(final String filename) {
         return indexFile(filename, FileExtensions.TABIX_INDEX);
     }
 
     /**
-     * Return the File of the tabix index file for the provided {@code file}
-     * Does not actually create an index
-     * @param file  the file
-     * @return a non-null File representing the index
-     */
-    public static File tabixIndexFile(final File file) {
-        return indexFile(file.getAbsoluteFile(), FileExtensions.TABIX_INDEX);
-    }
-
-    /**
-     * Return the name of the tabix index file for the provided {@code path}
-     * Does not actually create an index
-     * @param path the path
-     * @return Path representing the index filename
+     * Return the Path of the tabix index file for the provided {@code path}.
+     * Does not actually create an index.
+     * 
+     * <p>The tabix index path is constructed by appending the tabix index extension 
+     * ({@link FileExtensions#TABIX_INDEX}) to the absolute path.
+     * 
+     * @param path the path to the data file
+     * @return a non-null Path representing the tabix index file location
      */
     public static Path tabixIndexPath(final Path path) {
         return path.getFileSystem().getPath(tabixIndexFile(path.toAbsolutePath().toString()));
     }
 
     /**
-     * Return the name of the index file for the provided {@code filename} and {@code extension}
-     * Does not actually create an index
+     * Return the name of the index file for the provided {@code filename} and {@code extension}.
+     * Does not actually create an index.
+     * 
      * @param filename  name of the file
      * @param extension the extension to use for the index
      * @return non-null String representing the index filename
      */
     private static String indexFile(final String filename, final String extension) {
         return ParsingUtils.appendToPath(filename, extension);
-    }
-
-    /**
-     * Return the File of the index file for the provided {@code file} and {@code extension}
-     * Does not actually create an index
-     * @param file  the file
-     * @param extension the extension to use for the index
-     * @return a non-null File representing the index
-     */
-    private static File indexFile(final File file, final String extension) {
-        return new File(file.getAbsoluteFile() + extension);
     }
 }

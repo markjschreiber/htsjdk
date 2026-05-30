@@ -41,9 +41,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -71,14 +71,14 @@ public class SeekableStreamGZIPinputStreamIntegrationTest extends HtsjdkTest {
     private static String RANDOM_ATTRIBUTE = "RD";
 
 
-    private static File createBgzipVcfsWithVariableSize(final int firstRecordAttributeLength, final int nSmallRecords) throws Exception {
+    private static Path createBgzipVcfsWithVariableSize(final int firstRecordAttributeLength, final int nSmallRecords) throws Exception {
         final VariantContext longRecord = new VariantContextBuilder("long", TEST_CHR, 1, 1, alleles)
                 .attribute(RANDOM_ATTRIBUTE, generateRandomString(firstRecordAttributeLength))
                 .make();
-        final File tempFile = Files.createTempFile("test" + firstRecordAttributeLength + "_" + nSmallRecords, ".vcf.gz").toFile();
+        final Path tempFile = Files.createTempFile("test" + firstRecordAttributeLength + "_" + nSmallRecords, ".vcf.gz");
         try (final VariantContextWriter writer = new VariantContextWriterBuilder()
                 .setOptions(VariantContextWriterBuilder.NO_OPTIONS)
-                .setOutputFile(tempFile)
+                .setOutputPath(tempFile)
                 .setOutputFileType(VariantContextWriterBuilder.OutputType.BLOCK_COMPRESSED_VCF)
                 .build()) {
             writer.setHeader(createTestHeader()); // do not write the header
@@ -119,8 +119,8 @@ public class SeekableStreamGZIPinputStreamIntegrationTest extends HtsjdkTest {
     }
 
     @Test(dataProvider = "compressedVcfsToTest")
-    public void testWrappedSeekableStreamInGZIPinputStream(final File input, final long nLines) throws Exception {
-        try (final LineReader reader = new BufferedLineReader(new GZIPInputStream(new SeekableFileStream(input)))) {
+    public void testWrappedSeekableStreamInGZIPinputStream(final Path input, final long nLines) throws Exception {
+        try (final LineReader reader = new BufferedLineReader(new GZIPInputStream(new SeekableFileStream(input.toFile())))) {
             for (int i = 0; i < nLines; i++) {
                 Assert.assertNotNull(reader.readLine(), "line #" + reader.getLineNumber());
             }
@@ -130,8 +130,8 @@ public class SeekableStreamGZIPinputStreamIntegrationTest extends HtsjdkTest {
     }
 
     @Test(dataProvider = "compressedVcfsToTest")
-    public void testConsistencyWithBgzip(final File input, final long nLines) throws Exception {
-        try (final InputStream gzIs = new GZIPInputStream(new SeekableFileStream(input));
+    public void testConsistencyWithBgzip(final Path input, final long nLines) throws Exception {
+        try (final InputStream gzIs = new GZIPInputStream(new SeekableFileStream(input.toFile()));
              final InputStream bgzIs = new BlockCompressedInputStream(input)) {
             int bgz = bgzIs.read();
             while (bgz != -1) {

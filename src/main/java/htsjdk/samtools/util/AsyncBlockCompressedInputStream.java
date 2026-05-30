@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -93,6 +94,16 @@ public class AsyncBlockCompressedInputStream extends BlockCompressedInputStream 
     public AsyncBlockCompressedInputStream(final File file, InflaterFactory inflaterFactory)
             throws IOException {
         super(file, inflaterFactory);
+    }
+
+    public AsyncBlockCompressedInputStream(final Path path)
+        throws IOException {
+        super(path);
+    }
+
+    public AsyncBlockCompressedInputStream(final Path path, InflaterFactory inflaterFactory)
+            throws IOException {
+        super(path, inflaterFactory);
     }
 
     public AsyncBlockCompressedInputStream(final URL url) {

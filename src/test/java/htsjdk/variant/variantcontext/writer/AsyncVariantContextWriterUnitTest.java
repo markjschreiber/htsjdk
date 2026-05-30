@@ -43,9 +43,9 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -65,23 +65,23 @@ public class AsyncVariantContextWriterUnitTest extends VariantBaseTest {
 
     @BeforeClass
     private void createTemporaryDirectory() {
-        File tempDir = TestUtil.getTempDirectory("VCFWriter", "StaleIndex");
-        tempDir.deleteOnExit();
+        Path tempDir = TestUtil.getTempDirectory("VCFWriter", "StaleIndex").toPath();
+        tempDir.toFile().deleteOnExit();
     }
 
     /** test, using the writer and reader, that we can output and input a VCF body without problems */
     @Test
     public void testWriteAndReadAsyncVCFHeaderless() throws IOException {
-        final File fakeVCFFile = VariantBaseTest.createTempFile("testWriteAndReadAsyncVCFHeaderless.", FileExtensions.VCF);
-        fakeVCFFile.deleteOnExit();
+        final Path fakeVCFPath = VariantBaseTest.createTempFile("testWriteAndReadAsyncVCFHeaderless.", FileExtensions.VCF);
+        fakeVCFPath.toFile().deleteOnExit();
 
-        Tribble.indexFile(fakeVCFFile).deleteOnExit();
+        Tribble.indexPath(fakeVCFPath).toFile().deleteOnExit();
         final Set<VCFHeaderLine> metaData = new HashSet<>();
         final Set<String> additionalColumns = new HashSet<>();
         final SAMSequenceDictionary sequenceDict = createArtificialSequenceDictionary();
         final VCFHeader header = createFakeHeader(metaData, additionalColumns, sequenceDict);
         try (final VariantContextWriter writer = new VariantContextWriterBuilder()
-                .setOutputFile(fakeVCFFile).setReferenceDictionary(sequenceDict)
+                .setOutputPath(fakeVCFPath).setReferenceDictionary(sequenceDict)
                 .setOptions(EnumSet.of(Options.ALLOW_MISSING_FIELDS_IN_HEADER, Options.INDEX_ON_THE_FLY, Options.USE_ASYNC_IO))
                 .build()) {
             writer.setHeader(header);
@@ -91,7 +91,7 @@ public class AsyncVariantContextWriterUnitTest extends VariantBaseTest {
         final VCFCodec codec = new VCFCodec();
         codec.setVCFHeader(header, VCFHeaderVersion.VCF4_2);
 
-        try (final FileInputStream fis = new FileInputStream(fakeVCFFile)) {
+        try (final var fis = Files.newInputStream(fakeVCFPath)) {
             final AsciiLineReaderIterator iterator = new AsciiLineReaderIterator(new AsciiLineReader(fis));
             int counter = 0;
             while (iterator.hasNext()) {

@@ -630,9 +630,9 @@ public class CRAMIndexQueryTest extends HtsjdkTest {
             final int expectedReadCount) throws IOException {
         SamReaderFactory factory = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.LENIENT);
         if (referenceFileName != null) {
-            factory = factory.referenceSequence(referenceFileName);
+            factory = factory.referenceSequence(referenceFileName.toPath());
         }
-        try (final SamReader reader = factory.open(cramFileName);
+        try (final SamReader reader = factory.open(cramFileName.toPath());
              final CloseableIterator<SAMRecord> it = reader.queryAlignmentStart(queryContig, alignmentStart)) {
             int count = 0;
             while (it.hasNext()) {
@@ -672,11 +672,11 @@ public class CRAMIndexQueryTest extends HtsjdkTest {
         // so we have to use ValidationStringency.LENIENT to suppress validation from throwing when it sees these..
         SamReaderFactory factory = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.LENIENT);
         if (referenceFileName != null) {
-            factory = factory.referenceSequence(referenceFileName);
+            factory = factory.referenceSequence(referenceFileName.toPath());
         }
         SAMRecord firstRecord;
         SAMRecord firstRecordMate;
-        try (final SamReader reader = factory.open(cramFileName)) {
+        try (final SamReader reader = factory.open(cramFileName.toPath())) {
             final CloseableIterator<SAMRecord> it = reader.queryAlignmentStart(queryContig, alignmentStart);
             Assert.assertTrue(it.hasNext());
             firstRecord = it.next();
@@ -684,13 +684,13 @@ public class CRAMIndexQueryTest extends HtsjdkTest {
         }
 
         // get the mate for the first record
-        try (final SamReader reader = factory.open(cramFileName)) {
+        try (final SamReader reader = factory.open(cramFileName.toPath())) {
             firstRecordMate = reader.queryMate(firstRecord);
             Assert.assertEquals(firstRecordMate.getReadName(), firstRecord.getReadName());
         }
 
         // now query the mate's mate to ensure we get symmetric results
-        try (final SamReader reader = factory.open(cramFileName)) {
+        try (final SamReader reader = factory.open(cramFileName.toPath())) {
             final SAMRecord matesMate = reader.queryMate(firstRecordMate);
             Assert.assertEquals(matesMate, firstRecord);
         }
@@ -704,9 +704,9 @@ public class CRAMIndexQueryTest extends HtsjdkTest {
     {
         SamReaderFactory factory = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.LENIENT);
         if (referenceFileName != null) {
-            factory = factory.referenceSequence(referenceFileName);
+            factory = factory.referenceSequence(referenceFileName.toPath());
         }
-        try (final SamReader reader = factory.open(cramFileName);
+        try (final SamReader reader = factory.open(cramFileName.toPath());
              final CloseableIterator<SAMRecord> it = getIterator.apply(reader)) {
             int count = 0;
             while (it.hasNext()) {
@@ -741,10 +741,10 @@ public class CRAMIndexQueryTest extends HtsjdkTest {
     {
         SamReaderFactory factory = SamReaderFactory.makeDefault();
         if (referenceFileName != null) {
-            factory = factory.referenceSequence(referenceFileName);
+            factory = factory.referenceSequence(referenceFileName.toPath());
         }
 
-        try (final SamReader reader = factory.open(cramFileName)) {
+        try (final SamReader reader = factory.open(cramFileName.toPath())) {
             final CloseableIterator<SAMRecord> origIt = reader.iterator();
 
             // opening the second iterator should throw
@@ -775,10 +775,10 @@ public class CRAMIndexQueryTest extends HtsjdkTest {
             final int expectedCount) throws IOException
     {
         SamReaderFactory factory = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.SILENT);
-        factory = factory.referenceSequence(referenceFileName);
+        factory = factory.referenceSequence(referenceFileName.toPath());
 
         int count = 0;
-        try (final SamReader reader = factory.open(cramFileName);
+        try (final SamReader reader = factory.open(cramFileName.toPath());
              final CloseableIterator<SAMRecord> it = reader.queryUnmapped())
         {
             while (it.hasNext()) {
@@ -819,7 +819,7 @@ public class CRAMIndexQueryTest extends HtsjdkTest {
 
             SamReaderFactory factory = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.LENIENT);
             if (referenceFile != null) {
-                factory = factory.referenceSequence(referenceFile);
+                factory = factory.referenceSequence(referenceFile.toPath());
             }
             try (final SamReader reader = factory.open(jimfsCRAM)) {
                 try (final CloseableIterator<SAMRecord> it = reader.queryOverlapping(new QueryInterval[]{interval})) {

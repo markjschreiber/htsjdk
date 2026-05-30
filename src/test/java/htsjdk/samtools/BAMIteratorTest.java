@@ -30,17 +30,17 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * @author alecw@broadinstitute.org
  */
 public class BAMIteratorTest extends HtsjdkTest {
-    private static final File TEST_DATA_DIR = new File("src/test/resources/htsjdk/samtools");
+    private static final Path TEST_DATA_DIR = Path.of("src/test/resources/htsjdk/samtools");
 
     @Test(dataProvider = "dataProvider")
     public void testIterateEmptyBam(final String bam) throws Exception {
-        final SamReader reader = SamReaderFactory.makeDefault().open(new File(TEST_DATA_DIR, bam));
+        final SamReader reader = SamReaderFactory.makeDefault().open(TEST_DATA_DIR.resolve(bam));
         int numRecords = 0;
         for (final SAMRecord rec : reader) {
             ++numRecords;
@@ -51,7 +51,7 @@ public class BAMIteratorTest extends HtsjdkTest {
 
     @Test(dataProvider = "dataProvider")
     public void testQueryUnmappedEmptyBam(final String bam) throws Exception {
-        final SamReader reader = SamReaderFactory.makeDefault().open(new File(TEST_DATA_DIR, bam));
+        final SamReader reader = SamReaderFactory.makeDefault().open(TEST_DATA_DIR.resolve(bam));
         final CloseableIterator<SAMRecord> it = reader.queryUnmapped();
         int numRecords = 0;
         while (it.hasNext()) {

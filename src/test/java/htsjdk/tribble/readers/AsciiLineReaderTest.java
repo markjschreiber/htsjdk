@@ -8,8 +8,9 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -26,8 +27,8 @@ public class AsciiLineReaderTest extends HtsjdkTest {
      */
     @Test
     public void testReadLines() throws Exception {
-        String filePath = TestUtils.DATA_DIR + "gwas/smallp.gwas";
-        InputStream is = new FileInputStream(filePath);
+        Path filePath = Path.of(TestUtils.DATA_DIR, "gwas/smallp.gwas");
+        InputStream is = Files.newInputStream(filePath);
         AsciiLineReader reader = AsciiLineReader.from(is);
         int actualLines = 0;
         int expectedNumber = 20;

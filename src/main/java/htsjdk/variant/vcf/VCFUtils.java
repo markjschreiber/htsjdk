@@ -240,11 +240,11 @@ public class VCFUtils {
 
         File output = createTemporaryIndexedVcfFile(tempFilePrefix, extension);
 
-        try (final VCFFileReader in = new VCFFileReader(vcfFile, false);
+        try (final VCFFileReader in = new VCFFileReader(vcfFile.toPath(), false);
              final VariantContextWriter out = new VariantContextWriterBuilder().
                      setReferenceDictionary(in.getFileHeader().getSequenceDictionary()).
                      setOptions(EnumSet.of(Options.INDEX_ON_THE_FLY)).
-                     setOutputFile(output).build()) {
+                     setOutputPath(output.toPath()).build()) {
             out.writeHeader(in.getFileHeader());
             for (final VariantContext ctx : in) {
                 out.add(ctx);

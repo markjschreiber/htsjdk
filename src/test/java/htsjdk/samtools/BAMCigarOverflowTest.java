@@ -4,7 +4,7 @@ import htsjdk.HtsjdkTest;
 import htsjdk.samtools.util.CloserUtil;
 import org.testng.annotations.Test;
 
-import java.io.File;
+import java.nio.file.Path;
 
 import static org.testng.Assert.assertEquals;
 
@@ -13,11 +13,11 @@ import static org.testng.Assert.assertEquals;
  * causes an overflow in the CIGAR when reading a BAM file for a read that spans a very large intron.
  */
 public class BAMCigarOverflowTest extends HtsjdkTest {
-    private static final File TEST_DATA_DIR = new File("src/test/resources/htsjdk/samtools");
+    private static final Path TEST_DATA_DIR = Path.of("src/test/resources/htsjdk/samtools");
 
     @Test
     public void testCigarOverflow() throws Exception {
-        final SamReader reader = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.LENIENT).open(new File(TEST_DATA_DIR, "BAMCigarOverflowTest/CigarOverflowTest.bam"));
+        final SamReader reader = SamReaderFactory.makeDefault().validationStringency(ValidationStringency.LENIENT).open(TEST_DATA_DIR.resolve("BAMCigarOverflowTest/CigarOverflowTest.bam"));
 
         //Load the single read from the BAM file.
         final SAMRecord testBAMRecord = reader.iterator().next();

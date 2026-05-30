@@ -21,6 +21,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 
 public class SliceTests extends HtsjdkTest {
@@ -103,8 +104,8 @@ public class SliceTests extends HtsjdkTest {
     public void testValidateReferenceMD5Fails() throws IOException {
         // auxf.alteredForMD5test.fa has been altered slightly from the original reference
         // to cause the CRAM md5 check to fail
-        final File CRAMFile = new File("src/test/resources/htsjdk/samtools/cram/auxf#values.3.0.cram");
-        final File refFile = new File("src/test/resources/htsjdk/samtools/cram/auxf.alteredForMD5test.fa");
+        final Path CRAMFile = Path.of("src/test/resources/htsjdk/samtools/cram/auxf#values.3.0.cram");
+        final Path refFile = Path.of("src/test/resources/htsjdk/samtools/cram/auxf.alteredForMD5test.fa");
         final ReferenceSource refSource = new ReferenceSource(refFile);
         try (final CRAMFileReader reader = new CRAMFileReader(
                     CRAMFile,

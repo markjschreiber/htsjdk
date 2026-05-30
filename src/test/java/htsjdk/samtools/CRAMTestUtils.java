@@ -8,6 +8,7 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -20,9 +21,9 @@ public final class CRAMTestUtils {
     // returns the size of the generated file
     public static long writeToCRAMWithEncodingStrategy(
             final CRAMEncodingStrategy cramEncodingStrategy,
-            final File inputFile,
-            final File tempOutputCRAM,
-            final File referenceFile) throws IOException {
+            final Path inputFile,
+            final Path tempOutputCRAM,
+            final Path referenceFile) throws IOException {
         return writeToCRAMWithEncodingStrategy(cramEncodingStrategy, inputFile, tempOutputCRAM, new ReferenceSource(referenceFile));
     }
 
@@ -31,14 +32,14 @@ public final class CRAMTestUtils {
     // returns the size of the generated file
     public static long writeToCRAMWithEncodingStrategy(
         final CRAMEncodingStrategy cramEncodingStrategy,
-        final File inputFile,
-        final File tempOutputCRAM,
+        final Path inputFile,
+        final Path tempOutputCRAM,
         final ReferenceSource referenceSource) throws IOException {
         try (final SamReader reader = SamReaderFactory.makeDefault()
                 .referenceSource(referenceSource)
                 .validationStringency((ValidationStringency.SILENT))
                 .open(inputFile);
-             final FileOutputStream fos = new FileOutputStream(tempOutputCRAM)) {
+             final OutputStream fos = Files.newOutputStream(tempOutputCRAM)) {
             final CRAMFileWriter cramWriter = new CRAMFileWriter(
                     cramEncodingStrategy,
                     fos,
@@ -46,14 +47,14 @@ public final class CRAMTestUtils {
                     true,
                     referenceSource,
                     reader.getFileHeader(),
-                    tempOutputCRAM.getName());
+                    tempOutputCRAM.getFileName().toString());
             final SAMRecordIterator inputIterator = reader.iterator();
             while (inputIterator.hasNext()) {
                 cramWriter.addAlignment(inputIterator.next());
             }
             cramWriter.close();
         }
-        return Files.size(tempOutputCRAM.toPath());
+        return Files.size(tempOutputCRAM);
     }
 
     /**
