@@ -23,9 +23,12 @@
  */
 package htsjdk.samtools;
 
+import htsjdk.samtools.seekablestream.SeekablePathStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.util.RuntimeIOException;
 
+import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,11 +60,11 @@ public abstract class AbstractBAMFileIndex implements BAMIndex {
     }
 
     protected AbstractBAMFileIndex(final Path path, final SAMSequenceDictionary dictionary) {
-        this(new MemoryMappedFileBuffer(path), path.toString(), dictionary);
+        this(createBufferForPath(path), path.toString(), dictionary);
     }
 
     protected AbstractBAMFileIndex(final Path path, final SAMSequenceDictionary dictionary, final boolean useMemoryMapping) {
-        this((useMemoryMapping ? new MemoryMappedFileBuffer(path) : new RandomAccessFileBuffer(path)), path.toString(), dictionary);
+        this(createBufferForPath(path, useMemoryMapping), path.toString(), dictionary);
     }
 
     protected AbstractBAMFileIndex(final IndexFileBuffer indexFileBuffer, final String source, final SAMSequenceDictionary dictionary) {
@@ -69,6 +72,46 @@ public abstract class AbstractBAMFileIndex implements BAMIndex {
         mBamDictionary = dictionary;
         verifyIndexMagicNumber(source);
         initParameters();
+    }
+
+    /**
+     * Returns true if the given path is not on the default (local) file system.
+     * Non-local paths (e.g., S3, GCS, HDFS, Jimfs) cannot be memory-mapped or
+     * accessed via FileChannel and require a stream-based fallback.
+     */
+    private static boolean isNonLocalPath(final Path path) {
+        return !path.getFileSystem().equals(FileSystems.getDefault());
+    }
+
+    /**
+     * Creates the appropriate IndexFileBuffer for the given path.
+     * Non-local paths use a stream-based buffer; local paths use memory-mapped I/O.
+     */
+    private static IndexFileBuffer createBufferForPath(final Path path) {
+        if (isNonLocalPath(path)) {
+            try {
+                return new IndexStreamBuffer(new SeekablePathStream(path));
+            } catch (final IOException e) {
+                throw new RuntimeIOException("Failed to open index stream for non-local path: " + path, e);
+            }
+        }
+        return new MemoryMappedFileBuffer(path);
+    }
+
+    /**
+     * Creates the appropriate IndexFileBuffer for the given path, respecting the memory-mapping preference.
+     * Non-local paths always use a stream-based buffer regardless of the useMemoryMapping flag.
+     * Local paths use MemoryMappedFileBuffer when useMemoryMapping is true, RandomAccessFileBuffer otherwise.
+     */
+    private static IndexFileBuffer createBufferForPath(final Path path, final boolean useMemoryMapping) {
+        if (isNonLocalPath(path)) {
+            try {
+                return new IndexStreamBuffer(new SeekablePathStream(path));
+            } catch (final IOException e) {
+                throw new RuntimeIOException("Failed to open index stream for non-local path: " + path, e);
+            }
+        }
+        return useMemoryMapping ? new MemoryMappedFileBuffer(path) : new RandomAccessFileBuffer(path);
     }
 
     /**
