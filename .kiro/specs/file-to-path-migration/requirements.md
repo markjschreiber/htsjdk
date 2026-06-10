@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This specification defines the requirements for migrating HTSJDK from `java.io.File` to `java.nio.file.Path` with URI constructor support. This migration enables full Java NIO Service Provider Interface (SPI) compatibility, allowing HTSJDK to work seamlessly with custom filesystems such as S3, HDFS, in-memory filesystems, and other cloud storage providers. This is a breaking change suitable for a major version release (4.0.0).
+This specification defines the requirements for migrating HTSJDK from `java.io.File` to `java.nio.file.Path` with URI constructor support. This migration enables full Java NIO Service Provider Interface (SPI) compatibility, allowing HTSJDK to work seamlessly with custom filesystems such as S3, HDFS, in-memory filesystems, and other cloud storage providers. This is a breaking change suitable for a major version release.
 
 ## Glossary
 
